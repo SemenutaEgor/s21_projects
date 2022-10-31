@@ -4,7 +4,7 @@ SRC_CAT=cat/s21_cat.c
 HDR=
 EXE_CAT=cat/s21_cat
 
-.PHONY: all clean rebuild clang cpp style leaks
+.PHONY: all clean rebuild clang cpp
 
 all: s21_cat
 
@@ -21,10 +21,6 @@ clang:
 
 cpp:
 	cppcheck --enable=all --suppress=missingIncludeSystem $(SRC_CAT)
-
-style:
-	cp ../materials/linters/CPPLINT.cfg CPPLINT.cfg
-	python3 ../materials/linters/cpplint.py --extensions=c $(SRC_CAT)
 
 leaks_cat: $(EXE_CAT)
 	leaks -atExit -- $(word 1,$^)
