@@ -2,6 +2,6 @@
 
 // int main(int argc, char *argn[]) {
 int main() {
-  printf("Cat\n");
+  printf("cat");
   return 0;
 }
