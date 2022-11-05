@@ -1,29 +1,36 @@
 #include <stdio.h>
 #include <string.h>
+#include <getopt.h>
 
-#define MAX_FILE_NAME
-
-struct file_name {
-    name = char[255];
-    struct file_name *next;
-};
-
-bool is_file(char *argv);
-void output(char **files);
+void output(char *filename);
 
 int main(int argc, char **argv) {
-    char **files = NULL; 
-    int num_files = 0;
-    for (int i = 0; i < argc; i++) {
-        printf("argv[%d]: %s\n", i, argv[i]);
-        if (is_file(argv[i])) {
-            files = realloc(files,  * sizeof(char*));
+    
+    const char* short_options = //add short options
 
-        } else {
-        }
-        for (size_t j = 0; j < strlen(argv[i]); j++) {
-            printf("%c\n", argv[i][j]);
+    const struct option long_options[] = {
+        //add long options
+    };
+
+    int res;
+    int option_index;
+
+    while ((res = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1) {
+        switch (res) {
+            //cases of options
         }
     }
+
   return 0;
+}
+
+void output(char *filename) {
+    FILE *fp;
+    if (fp = fopen(filename, "r")) {
+        while (!eof) {
+            //processing
+        }
+    } else {
+        //put in stderr an error with wrong filename
+    }
 }
