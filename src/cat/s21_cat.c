@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <string.h>
 #define _GNU_SOURCE
 #include <getopt.h>
+#include <stdio.h>
+#include <string.h>
 
 //void output(char *filename);
 
@@ -12,7 +12,8 @@ int main(int argc, char **argv) {
     const struct option long_options[] = {
         {"number-nonblank", no_argument, NULL, 'b'},
         {"number", no_argument, NULL, 'n'},
-        {"squeeze-blank", no_argument, NULL, 's'}
+        {"squeeze-blank", no_argument, NULL, 's'},
+        {NULL, 0, NULL, 0}
     };
 
     int res;
@@ -29,7 +30,11 @@ int main(int argc, char **argv) {
                 break;
             }
             case 's': {
-                printf("squeeze-blank\n");
+                printf("It was flag squeeze-blank\n");
+                break;
+            }
+            case 'e': {
+                printf("It was flag e\n");
                 break;
             }
             case '?': default: {
