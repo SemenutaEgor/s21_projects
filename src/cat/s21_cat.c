@@ -2,8 +2,9 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-//void output(char *filename);
+void simple_output(char *filename);
 
 int main(int argc, char **argv) {
     
@@ -47,13 +48,22 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-/*void output(char *filename) {
-    FILE *fp;
-    if (fp = fopen(filename, "r")) {
-        while (!eof) {
-            //processing
+void output(char *filename) {
+    char *line_buf = NULL;
+    size_t lint_buf_size = 0;
+    int line_count = 0;
+    ssize_t line_size; //ssize_t able to represent -1 for errors
+    FILE *fp = fopen(filename, "r")
+    if (fp) {
+        line_size = getline(&line_buf, &line_buf_size, fp);
+        while (line_size >= 0) {
+            line_count++;
+            printf("line[%06d]: chars=%6zd, buf size=%06zu, contents: %s", line_count, line_size, line_buf_size, line_buf);
+            line_size = getline(&line_buf, &line_buf_size, fp);
         }
+        free(line_buf);
+        line_buf = NULL;
+        fclose(fp);
     } else {
-        //put in stderr an error with wrong filename
+        fprintf(stderr, "Error opening file '%s'\n", filename);
     }
-}*/
