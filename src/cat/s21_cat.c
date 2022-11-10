@@ -44,16 +44,20 @@ int main(int argc, char **argv) {
             }
         }
     }
+    while (optind < argc) {
+        printf("found sth not flag: %s\n", argv[optind]);
+        optind++;
+    }
 
   return 0;
 }
 
 void output(char *filename) {
     char *line_buf = NULL;
-    size_t lint_buf_size = 0;
+    size_t line_buf_size = 0;
     int line_count = 0;
     ssize_t line_size; //ssize_t able to represent -1 for errors
-    FILE *fp = fopen(filename, "r")
+    FILE *fp = fopen(filename, "r");
     if (fp) {
         line_size = getline(&line_buf, &line_buf_size, fp);
         while (line_size >= 0) {
@@ -67,3 +71,4 @@ void output(char *filename) {
     } else {
         fprintf(stderr, "Error opening file '%s'\n", filename);
     }
+}
