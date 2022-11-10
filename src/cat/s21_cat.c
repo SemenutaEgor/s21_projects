@@ -4,9 +4,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, int* flag_b, int* flag_e, int* flag_n, int* flag_s, int* flag_t);
+void file_printer(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t);
 void simple_output(char *filename);
 
 int main(int argc, char **argv) {
+
+    int flag_b, flag_e, flag_n, flag_s, flag_t;
     
     const char* short_options = "benst";
 
@@ -17,41 +21,66 @@ int main(int argc, char **argv) {
         {NULL, 0, NULL, 0}
     };
 
-    int res;
+    int optind = get_flags(short_options, long_options, argc, argv, &flag_b, &flag_e, &flag_n, &flag_s, &flag_t);
+    file_printer(optind, argc, argv, flag_b, flag_e, flag_n, flag_s, flag_t);
+        
+  return 0;
+}
+
+int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, int* flag_b, int* flag_e, int* flag_n, int* flag_s, int* flag_t) {
+    
     int option_index;
+    int res;
 
     while ((res = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1) {
         switch (res) {
             case 'b': {
                 printf("It was flag --number-nonblank\n");
+                *flag_b = 1;
                 break;
             }
             case 'n': {
                 printf("It was flag --number\n");
+                *flag_n = 1;
                 break;
             }
             case 's': {
                 printf("It was flag squeeze-blank\n");
+                *flag_s = 1;
                 break;
             }
             case 'e': {
                 printf("It was flag e\n");
+                *flag_e = 1;
                 break;
             }
+            case 't': {
+                printf("It was flag t\n");
+                *flag_t = 1;
+                break;
+            }
+
             case '?': default: {
                 printf("found unknown option");
                 break;
             }
         }
     }
+    return optind;
+}
+
+void file_printer(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t) {
     while (optind < argc) {
-        printf("found sth not flag: %s\n", argv[optind]);
+        if (flag_b + flag_e + flag_n + flag_s + flag_t == 0) {
+        printf("no flags\n");
         simple_output(argv[optind]);
+        } else {
+            // if there are flags
+        }
         optind++;
     }
-
-  return 0;
 }
+
 
 void simple_output(char *filename) {
     char *line_buf = NULL;
