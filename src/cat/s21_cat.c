@@ -46,13 +46,14 @@ int main(int argc, char **argv) {
     }
     while (optind < argc) {
         printf("found sth not flag: %s\n", argv[optind]);
+        simple_output(argv[optind]);
         optind++;
     }
 
   return 0;
 }
 
-void output(char *filename) {
+void simple_output(char *filename) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
