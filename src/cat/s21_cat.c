@@ -5,8 +5,9 @@
 #include <stdlib.h>
 
 int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, int* flag_b, int* flag_e, int* flag_n, int* flag_s, int* flag_t);
-void file_printer(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t);
-void simple_output(char *filename);
+void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t);
+void output(char *filename);
+void flag_n_app(char *filename);
 
 int main(int argc, char **argv) {
 
@@ -22,7 +23,7 @@ int main(int argc, char **argv) {
     };
 
     int optind = get_flags(short_options, long_options, argc, argv, &flag_b, &flag_e, &flag_n, &flag_s, &flag_t);
-    file_printer(optind, argc, argv, flag_b, flag_e, flag_n, flag_s, flag_t);
+    flags_controller(optind, argc, argv, flag_b, flag_e, flag_n, flag_s, flag_t);
         
   return 0;
 }
@@ -69,20 +70,46 @@ int get_flags(const char* short_options, const struct option long_options[], int
     return optind;
 }
 
-void file_printer(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t) {
+void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t) {
     while (optind < argc) {
         if (flag_b + flag_e + flag_n + flag_s + flag_t == 0) {
         printf("no flags\n");
-        simple_output(argv[optind]);
+        output(argv[optind]);
         } else {
-            // if there are flags
+            if (flag_n) {
+                flag_n_app(argv[optind]);
+                output("buffer.txt");
+            }
         }
         optind++;
     }
 }
 
+void flag_n_app(char *filename) {
+    printf("flag n OK");
+    char *line_buf = NULL;
+    size_t line_buf_size = 0;
+    int line_count = 0;
+    ssize_t line_size;
+    FILE *fp = fopen(filename, "r");
+    FILE *fbuf = fopen("buffer.txt", "w+");
+    if (fp) {
+        line_size = getline(&line_buf, &line_buf_size, fp);
+        while (line_size >= 0) {
+            line_count++;
+            fprintf(fbuf, "1.   %s", line_buf);
+            line_size = getline(&line_buf, &line_buf_size, fp);
+        }
+        free(line_buf);
+        line_buf = NULL;
+        fclose(fp);
+        fclose(fbuf);
+    } else {
+        fprintf(stderr, "Error opening file '%s'\n", filename);
+    }
+}
 
-void simple_output(char *filename) {
+void output(char *filename) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
