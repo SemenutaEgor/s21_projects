@@ -41,7 +41,6 @@ int get_flags(const char* short_options, const struct option long_options[], int
                 break;
             }
             case 'n': {
-                printf("It was flag --number\n");
                 *flag_n = 1;
                 break;
             }
@@ -73,8 +72,7 @@ int get_flags(const char* short_options, const struct option long_options[], int
 void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t) {
     while (optind < argc) {
         if (flag_b + flag_e + flag_n + flag_s + flag_t == 0) {
-        printf("no flags\n");
-        output(argv[optind]);
+            output(argv[optind]);
         } else {
             if (flag_n) {
                 flag_n_app(argv[optind]);
@@ -86,7 +84,6 @@ void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e,
 }
 
 void flag_n_app(char *filename) {
-    printf("flag n OK");
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
@@ -97,7 +94,11 @@ void flag_n_app(char *filename) {
         line_size = getline(&line_buf, &line_buf_size, fp);
         while (line_size >= 0) {
             line_count++;
-            fprintf(fbuf, "1.   %s", line_buf);
+            fprintf(fbuf, "%6d\t", line_count);
+            size_t i = 0;
+            while(i < line_buf_size) {
+                putc(line_buf[i++], fbuf);
+            }
             line_size = getline(&line_buf, &line_buf_size, fp);
         }
         free(line_buf);
@@ -119,7 +120,11 @@ void output(char *filename) {
         line_size = getline(&line_buf, &line_buf_size, fp);
         while (line_size >= 0) {
             line_count++;
-            printf("line[%06d]: chars=%6zd, buf size=%06zu, contents: %s", line_count, line_size, line_buf_size, line_buf);
+            // printf("line[%06d]: chars=%6zd, buf size=%06zu, contents: %s", line_count, line_size, line_buf_size, line_buf);
+            size_t i = 0;
+            while(i < line_buf_size) {
+                putc(line_buf[i++], stdout);
+            }
             line_size = getline(&line_buf, &line_buf_size, fp);
         }
         free(line_buf);
