@@ -93,11 +93,18 @@ void flag_n_app(char *filename) {
     if (fp) {
         line_size = getline(&line_buf, &line_buf_size, fp);
         while (line_size >= 0) {
+            // printf("line_size = %ld\n", line_size);
             line_count++;
+            // printf("put number\n");
             fprintf(fbuf, "%6d\t", line_count);
-            size_t i = 0;
-            while(i < line_buf_size) {
+            ssize_t i = 0;
+            // size_t string_size = 0;
+            while(i < line_size) {
+                // printf("put symbol %c\n", line_buf[i]);
                 putc(line_buf[i++], fbuf);
+                // string_size += sizeof(line_buf[i]);
+                // printf("string_size = %ld\n", string_size);
+                // printf("line_buff_size = %ld\n", line_buf_size);
             }
             line_size = getline(&line_buf, &line_buf_size, fp);
         }
@@ -119,11 +126,14 @@ void output(char *filename) {
     if (fp) {
         line_size = getline(&line_buf, &line_buf_size, fp);
         while (line_size >= 0) {
+            // printf("OUTPUT_line_size = %ld\n", line_size);
             line_count++;
             // printf("line[%06d]: chars=%6zd, buf size=%06zu, contents: %s", line_count, line_size, line_buf_size, line_buf);
-            size_t i = 0;
-            while(i < line_buf_size) {
+            ssize_t i = 0;
+            // size_t string_size = 0;
+            while(i < line_size) {
                 putc(line_buf[i++], stdout);
+                // string_size += sizeof(line_buf[i]);
             }
             line_size = getline(&line_buf, &line_buf_size, fp);
         }
