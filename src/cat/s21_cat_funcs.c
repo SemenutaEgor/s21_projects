@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "s21_cat_funcs.h"
 
-int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, int* flag_b, int* flag_e, int* flag_n, int* flag_s, int* flag_t) {
+int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, dflag* flag) {
     
     int option_index;
     int res;
@@ -11,26 +11,31 @@ int get_flags(const char* short_options, const struct option long_options[], int
     while ((res = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1) {
         switch (res) {
             case 'b': {
-                *flag_b = 1;
+                flag->b = 1;
                 break;
             }
             case 'n': {
-                *flag_n = 1;
+                flag->n = 1;
                 break;
             }
             case 's': {
                 printf("It was flag squeeze-blank\n");
-                *flag_s = 1;
+                flag->s = 1;
                 break;
             }
             case 'e': {
                 printf("It was flag e\n");
-                *flag_e = 1;
+                flag->e = 1;
+                break;
+            }
+            case 'E': {
+                printf("It was flag e\n");
+                flag->E = 1;
                 break;
             }
             case 't': {
                 printf("It was flag t\n");
-                *flag_t = 1;
+                flag->t = 1;
                 break;
             }
 
@@ -43,16 +48,24 @@ int get_flags(const char* short_options, const struct option long_options[], int
     return optind;
 }
 
-void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e, int flag_n, int flag_s, int flag_t) {
+int no_flags(dflag flag) {
+    int res = 0;
+    if (flag.b + flag.e + flag.v + flag.E + flag.n + flag.s + flag.t + flag.T == 0) {
+        res = 1;
+    }
+    return res;
+}
+
+void flags_controller(int optind, int argc, char** argv, dflag flag) { 
     while (optind < argc) {
-        if (flag_b + flag_e + flag_n + flag_s + flag_t == 0) {
+        if (no_flags(flag)) {
             output(argv[optind]);
         } else {
-            if (flag_n) {
-                flag_n_app(argv[optind]);
+            if (flag.n) {
+                flag_n(argv[optind]);
             }
-            if (flag_b) {
-                flag_b_app(argv[optind]);
+            if (flag.b) {
+                flag_b(argv[optind]);
             }
             output("buffer.txt");
         }
@@ -60,7 +73,7 @@ void flags_controller(int optind, int argc, char** argv, int flag_b, int flag_e,
     }
 }
 
-void flag_n_app(char *filename) {
+void flag_n(char *filename) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
@@ -87,7 +100,7 @@ void flag_n_app(char *filename) {
     }
 }
 
-void flag_b_app(char *filename) {
+void flag_b(char *filename) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
