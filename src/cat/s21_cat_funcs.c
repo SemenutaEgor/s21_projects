@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "s21_cat_funcs.h"
-#define buffer_1 "buffer_1.txt"
-#define buffer_2 "buffer_2.txt"
 
 int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, dflag* flag) {
     
@@ -39,6 +34,11 @@ int get_flags(const char* short_options, const struct option long_options[], int
                 flag->t = 1;
                 break;
             }
+            case 'T': {
+                printf("It was flag T\n");
+                flag->T = 1;
+                break;
+            }
 
             case '?': default: {
                 printf("found unknown option");
@@ -57,30 +57,65 @@ int no_flags(dflag flag) {
     return res;
 }
 
-void flags_controller(int optind, int argc, char** argv, dflag flag) { 
+void files_controller(int optind, int argc, char** argv, dflag flag) { 
+
+    FILE *src;
+    
     while (optind < argc) {
-        if (no_flags(flag)) {
-            output(argv[optind]);
+        src = fopen(argv[optind], "r");
+        if (src) {
+            flags_controller(src, flag);
+            fclose(src);
         } else {
-            if (flag.n) {
-                flag_n(argv[optind]);
-                output(buffer_1);
-            }
-            if (flag.b) {
-                flag_b(argv[optind]);
-                output(buffer_1);
-            }
-            if (flag.e) {
-                flag_v(argv[optind]);
-                flag_e(buffer_1);
-                output(buffer_2);
-            }
+            fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
         }
         optind++;
     }
 }
 
-void flag_n(char *source_file) {
+void flags_controller(FILE *src, dflag flag) {
+    int prev_empty = 0, line_count = 0;
+    char *line_buf = NULL;
+    size_t line_buf_size = 0;
+    ssize_t line_size = getline(&line_buf, &line_buf_size, src);
+    dbuf buffer = {line_buf, 0, 0, line_size}; 
+    while (buffer.size >= 0) {
+        if (flag.e) {
+            //buffer = flag_e(buffer);
+        }
+        if (flag.E) {
+            //buffer = flag_E(buffer);
+        }
+        if (flag.t) {
+            //buffer = flag_t(buffer);
+        }
+        if (flag.T) {
+            //buffer = flag_T(buffer);
+        }
+        if (flag.s) {
+            //buffer = flag_s(buffer);
+        }
+        if (flag.n) {
+            //buffer = flag_n(buffer);
+        }
+        if (flag.b) {
+            //buffer = flag_b(buffer);
+        }
+        output(buffer, flag.s, prev_empty);
+        if (buffer.empty) {
+            prev_empty = 1;
+        }
+        line_count++;
+        buffer.size = getline(&line_buf, &line_buf_size, src);
+        buffer.data = line_buf;
+        buffer.empty = 0;
+        buffer.number = 0;
+    }
+    free(line_buf);
+    line_buf = NULL;
+}
+
+/*void flag_n(char *source_file) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     int line_count = 0;
@@ -206,27 +241,15 @@ void flag_e(char *source_file) {
         fprintf(stderr, "Error opening file '%s'\n", source_file);
     }
 }
-
-void output(char *source_file) {
-    char *line_buf = NULL;
-    size_t line_buf_size = 0;
-    int line_count = 0;
-    ssize_t line_size; //ssize_t able to represent -1 for errors
-    FILE *src = fopen(source_file, "r");
-    if (src) {
-        line_size = getline(&line_buf, &line_buf_size, src);
-        while (line_size >= 0) {
-            line_count++;
-            ssize_t i = 0;
-            while(i < line_size) {
-                putc(line_buf[i++], stdout);
-            }
-            line_size = getline(&line_buf, &line_buf_size, src);
+*/
+void output(dbuf buffer, int squeeze, int prev_empty) {
+    if (!(squeeze && buffer.data && prev_empty)) {
+        if (buffer.number) {
+            printf("%6d\t", buffer.number);
         }
-        free(line_buf);
-        line_buf = NULL;
-        fclose(src);
-    } else {
-        fprintf(stderr, "Error opening file '%s'\n", source_file);
+        ssize_t i = 0;
+        while(i < buffer.size) {
+            putchar(buffer.data[i++]);
+        }
     }
 }
