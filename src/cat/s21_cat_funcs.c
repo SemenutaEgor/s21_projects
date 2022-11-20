@@ -16,7 +16,6 @@ int get_flags(const char* short_options, const struct option long_options[], int
                 break;
             }
             case 's': {
-                printf("It was flag squeeze-blank\n");
                 flag->s = 1;
                 break;
             }
@@ -25,17 +24,14 @@ int get_flags(const char* short_options, const struct option long_options[], int
                 break;
             }
             case 'E': {
-                printf("It was flag e\n");
                 flag->E = 1;
                 break;
             }
             case 't': {
-                printf("It was flag t\n");
                 flag->t = 1;
                 break;
             }
             case 'T': {
-                printf("It was flag T\n");
                 flag->T = 1;
                 break;
             }
@@ -60,11 +56,12 @@ int no_flags(dflag flag) {
 void files_controller(int optind, int argc, char** argv, dflag flag) { 
 
     FILE *src;
+    int prev_empty = 0, all_count = 1, non_empty_count = 1;
     
     while (optind < argc) {
         src = fopen(argv[optind], "r");
         if (src) {
-            flags_controller(src, flag);
+            flags_controller(src, flag, &prev_empty, &all_count, &non_empty_count);
             fclose(src);
         } else {
             fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
@@ -73,39 +70,45 @@ void files_controller(int optind, int argc, char** argv, dflag flag) {
     }
 }
 
-void flags_controller(FILE *src, dflag flag) {
-    int prev_empty = 0, line_count = 0;
+void restart_prev_empty(int curr_empty, int *prev_empty) {
+    if (curr_empty) {
+        *prev_empty = 1;
+    } else {
+        *prev_empty = 0;
+    }
+}
+
+void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count, int *non_empty_count) {
     char *line_buf = NULL;
     size_t line_buf_size = 0;
     ssize_t line_size = getline(&line_buf, &line_buf_size, src);
     dbuf buffer = {line_buf, 0, 0, line_size}; 
     while (buffer.size >= 0) {
-        if (flag.e) {
-            //buffer = flag_e(buffer);
-        }
-        if (flag.E) {
-            //buffer = flag_E(buffer);
-        }
         if (flag.t) {
-            //buffer = flag_t(buffer);
+            flag_v(&buffer);
+            flag_t(&buffer);
         }
         if (flag.T) {
-            //buffer = flag_T(buffer);
+            flag_t(&buffer);
         }
         if (flag.s) {
-            //buffer = flag_s(buffer);
+            flag_s(&buffer);
         }
         if (flag.n) {
-            //buffer = flag_n(buffer);
+            flag_n(&buffer, all_count, flag.s, *prev_empty);
         }
         if (flag.b) {
-            //buffer = flag_b(buffer);
+            flag_b(&buffer, non_empty_count);
         }
-        output(buffer, flag.s, prev_empty);
-        if (buffer.empty) {
-            prev_empty = 1;
+        if (flag.e) {
+            flag_v(&buffer);
+            flag_e(&buffer);
         }
-        line_count++;
+        if (flag.E) {
+            flag_e(&buffer);
+        }
+        output(buffer, flag.s, *prev_empty);
+        restart_prev_empty(buffer.empty, prev_empty);
         buffer.size = getline(&line_buf, &line_buf_size, src);
         buffer.data = line_buf;
         buffer.empty = 0;
@@ -115,135 +118,85 @@ void flags_controller(FILE *src, dflag flag) {
     line_buf = NULL;
 }
 
-/*void flag_n(char *source_file) {
-    char *line_buf = NULL;
-    size_t line_buf_size = 0;
-    int line_count = 0;
-    ssize_t line_size;
-    FILE *src = fopen(source_file, "r");
-    FILE *buf1 = fopen(buffer_1, "w+");
-    if (src) {
-        line_size = getline(&line_buf, &line_buf_size, src);
-        while (line_size >= 0) {
-            line_count++;
-            fprintf(buf1, "%6d\t", line_count);
-            ssize_t i = 0;
-            while(i < line_size) {
-                putc(line_buf[i++], buf1);
-            }
-            line_size = getline(&line_buf, &line_buf_size, src);
-        }
-        free(line_buf);
-        line_buf = NULL;
-        fclose(src);
-        fclose(buf1);
-    } else {
-        fprintf(stderr, "Error opening file '%s'\n", source_file);
+void flag_n(dbuf *buffer, int  *all_count, int squeeze, int prev_empty) {
+    if (!(squeeze && buffer->empty && prev_empty)) {
+        buffer->number = (*all_count)++;
     }
 }
 
-void flag_b(char *source_file) {
-    char *line_buf = NULL;
-    size_t line_buf_size = 0;
-    int line_count = 1;
-    ssize_t line_size;
-    FILE *src = fopen(source_file, "r");
-    FILE *buf1 = fopen(buffer_1, "w+");
-    if (src) {
-        line_size = getline(&line_buf, &line_buf_size, src);
-        while (line_size >= 0) {
-            if (line_size > 1) {
-                fprintf(buf1, "%6d\t", line_count);
-                line_count++;
-            }
-            ssize_t i = 0;
-            while(i < line_size) {
-                putc(line_buf[i++], buf1);
-            }
-            line_size = getline(&line_buf, &line_buf_size, src);
-        }
-        free(line_buf);
-        line_buf = NULL;
-        fclose(src);
-        fclose(buf1);
+void flag_b(dbuf *buffer, int  *non_empty_count) {
+    if (buffer->size != 1) {
+        buffer->number = (*non_empty_count)++;
     } else {
-        fprintf(stderr, "Error opening file '%s'\n", source_file);
+        buffer->number = 0;
     }
 }
 
-void flag_v(char *source_file) {
-    char *line_buf = NULL;
-    size_t line_buf_size = 0;
-    int line_count = 0;
-    ssize_t line_size;
-    FILE *src = fopen(source_file, "r");
-    FILE *buf1 = fopen(buffer_1, "w+");
-    if (src) {
-        line_size = getline(&line_buf, &line_buf_size, src);
-        int code = 0;
-        while (line_size >= 0) {
-            line_count++;
-            ssize_t i = 0;
-            while(i < line_size) {
-                code = line_buf[i];
-                if (code <= 31 && code != 9 && code != 10 && code != 13) {
-                    putc('^', buf1);
-                    fprintf(buf1, "%c", code + 64);
-                } else if (code == 127) {
-                    putc('^', buf1);
-                    fprintf(buf1, "%c", 63);
-                } else {
-                    putc(line_buf[i], buf1);
-                }
-                i++;
-            }
-            line_size = getline(&line_buf, &line_buf_size, src);
-        }
-        free(line_buf);
-        line_buf = NULL;
-        fclose(src);
-        fclose(buf1);
-    } else {
-        fprintf(stderr, "Error opening file '%s'\n", source_file);
+void flag_s(dbuf *buffer) {
+    if (buffer->size == 1) {
+        buffer->empty = 1;
     }
 }
 
-void flag_e(char *source_file) {
-    char *line_buf = NULL;
-    size_t line_buf_size = 0;
-    int line_count = 0;
-    ssize_t line_size;
-    FILE *src = fopen(source_file, "r");
-    FILE *buf_2 = fopen(buffer_2, "w+");
-    if (src) {
-        line_size = getline(&line_buf, &line_buf_size, src);
-        int code = 0;
-        while (line_size >= 0) {
-            line_count++;
-            ssize_t i = 0;
-            while(i < line_size) {
-                code = line_buf[i];
-                if (code == 10) {
-                    putc('$', buf_2);
-                    putc('\n', buf_2);
-                } else {
-                    putc(line_buf[i], buf_2);
-                }
-                i++;
-            }
-            line_size = getline(&line_buf, &line_buf_size, src);
+void flag_v(dbuf *buffer) {
+    char *new_data = malloc(sizeof(char) * buffer->size * 2);
+    ssize_t i = 0;
+    int j = 0, code = 0;
+    while(i < buffer->size) {
+        code = buffer->data[i++];
+        if (code <= 31 && code != 9 && code != 10 && code != 13) {
+            new_data[j++] = '^';
+            new_data[j++] = code + 64;
+        } else if (code == 127) {
+            new_data[j++] = '^';
+            new_data[j++] = 63;
+        } else {
+            new_data[j++] = code;
         }
-        free(line_buf);
-        line_buf = NULL;
-        fclose(src);
-        fclose(buf_2);
-    } else {
-        fprintf(stderr, "Error opening file '%s'\n", source_file);
     }
+    buffer->size = j;
+    new_data = realloc(new_data, sizeof(char) * buffer->size);
+    buffer->data = new_data;
 }
-*/
+
+void flag_e(dbuf* buffer) {
+    char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+    ssize_t i = 0;
+    int j = 0, code = 0;
+    while(i < buffer->size) {
+        code = buffer->data[i++];
+        if (code == 10) {
+            new_data[j++] = '$';
+            new_data[j++] = '\n';
+        } else {
+            new_data[j++] = code;
+        }
+    }
+    buffer->size = j;
+    new_data = realloc(new_data, sizeof(char) * buffer->size);
+    buffer->data = new_data;
+}
+
+void flag_t(dbuf* buffer) {
+    char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+    ssize_t i = 0;
+    int j = 0, code = 0;
+    while(i < buffer->size) {
+        code = buffer->data[i++];
+        if (code == 9) {
+            new_data[j++] = '^';
+            new_data[j++] = 'I';
+        } else {
+            new_data[j++] = code;
+        }
+    }
+    buffer->size = j;
+    new_data = realloc(new_data, sizeof(char) * buffer->size);
+    buffer->data = new_data;
+}
+
 void output(dbuf buffer, int squeeze, int prev_empty) {
-    if (!(squeeze && buffer.data && prev_empty)) {
+    if (!(squeeze && buffer.empty && prev_empty)) {
         if (buffer.number) {
             printf("%6d\t", buffer.number);
         }

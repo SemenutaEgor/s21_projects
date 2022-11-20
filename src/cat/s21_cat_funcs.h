@@ -25,12 +25,14 @@ typedef struct string_buffer {
 
 int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, dflag* flag);
 void files_controller(int optind, int argc, char** argv, dflag flag);
-void flags_controller(FILE *src, dflag flag);
+void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count, int *non_empty_count);
+void restart_prev_empty(int curr_empty, int* prev_empty);
 void output(dbuf buffer, int squeeze, int prev_empty);
-int no_flags(dflag flag);
-void flag_n(char *source_file);
-void flag_b(char *source_file);
-void flag_v(char *source_file);
-void flag_e(char *source_file);
+void flag_v(dbuf *buffer);
+void flag_e(dbuf *buffer);
+void flag_t(dbuf *buffer);
+void flag_s(dbuf *buffer);
+void flag_b(dbuf *buffer, int *non_empty_count);
+void flag_n(dbuf *buffer, int *all_count, int squeeze, int prev_empty);
 
 #endif //  SRC_CAT_S21_CAT_FUNCS_H_
