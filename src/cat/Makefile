@@ -17,7 +17,7 @@ clean:
 rebuild: clean all
 
 clang:
-	clang-format -i $(SRC_CAT)
+	clang-format -style=google -i $(SRC_CAT)
 
 cpp:
 	cppcheck --enable=all --suppress=missingIncludeSystem $(SRC_CAT)
