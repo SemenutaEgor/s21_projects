@@ -25,4 +25,6 @@ cpp:
 leaks_cat: $(EXE_CAT)
 	leaks -atExit -- $(word 1,$^)
 
+valgrind: 
+	valgrind --tool=memcheck --leak-check=full --track-origins=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./$(EXE_CAT) 
 
