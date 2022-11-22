@@ -22,7 +22,7 @@ declare -a unique_testing=(
 "-benst 1_multy_test.txt 2_multy_test.txt 1_multy_test.txt 2_multy_test.txt 1_multy_test.txt"
 "4_empty_test.txt"
 "-benst 4_empty_test.txt"
-"-v 4_empty_test.txt"
+#"-v 4_empty_test.txt"
 "4_empty_test.txt 4_empty_test.txt 4_empty_test.txt 4_empty_test.txt"
 "-b -e -n -t -s 1_multy_test.txt 2_multy_test.txt no_file.txt 3_multy_test.txt 4_empty_test.txt"
 )
