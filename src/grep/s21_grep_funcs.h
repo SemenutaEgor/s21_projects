@@ -21,9 +21,9 @@ typedef struct string_buffer {
     char *data;
 } dbuf;
 
-int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, dflag* flag);
+int get_flags(const char* short_options, int argc, char **argv, dflag* flag);
 void files_controller(int optind, int argc, char** argv, dflag flag);
 void flags_controller(FILE *src, dflag flag);
-void output(dbuf buffer);
+void output();
 
 #endif //  SRC_GREP_S21_GREP_FUNCS_H_

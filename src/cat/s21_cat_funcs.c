@@ -47,14 +47,6 @@ int get_flags(const char *short_options, const struct option long_options[],
   return optind;
 }
 
-int no_flags(dflag flag) {
-  int res = 0;
-  if (flag.b + flag.e + flag.E + flag.n + flag.s + flag.t + flag.T == 0) {
-    res = 1;
-  }
-  return res;
-}
-
 void files_controller(int optind, int argc, char **argv, dflag flag) {
   FILE *src;
   int prev_empty = 0, all_count = 1, non_empty_count = 1, new_line = 1;

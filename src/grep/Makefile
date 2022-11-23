@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Werror
-SRC_GREP=s21_grep.c #s21_grep_funcs.c
+SRC_GREP=s21_grep.c s21_grep_funcs.c
 HDR=s21_grep_funcs.h
 EXE_GREP=s21_grep
 
