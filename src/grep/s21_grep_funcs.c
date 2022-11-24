@@ -12,47 +12,56 @@ void print_result(int value) {
 
 int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
   int res;
-
-  while ((res = getopt(argc, argv, short_options)) != -1) {
+  while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
         flag->e = 1;
+        printf("flag e\n");
         break;
       }
       case 'i': {
         flag->i = 1;
+        printf("flag i\n");
         break;
       }
       case 'v': {
         flag->v = 1;
+        printf("flag v\n");
         break;
       }
       case 'c': {
         flag->c = 1;
+        printf("flag c\n");
         break;
       }
       case 'l': {
         flag->l = 1;
+        printf("flag l\n");
         break;
       }
       case 'n': {
         flag->n = 1;
+        printf("flag n\n");
         break;
       }
       case 'h': {
         flag->h = 1;
+        printf("flag h\n");
         break;
       }
       case 's': {
         flag->s = 1;
+        printf("flag s\n");
         break;
       }
       case 'f': {
         flag->f = 1;
+        printf("flag f\n");
         break;
       }
       case 'o': {
         flag->o = 1;
+        printf("flag o\n");
         break;
       }
 
