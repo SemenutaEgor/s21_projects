@@ -1,5 +1,15 @@
 #include "s21_grep_funcs.h"
 
+void print_result(int value) {
+	if (value == 0) {
+		printf("Pattern found\n");
+	} else if (value == REG_NOMATCH) {
+		printf("Pattern not found\n");
+	} else {
+		printf("An error occured\n");
+	}
+}
+
 int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
   int res;
 

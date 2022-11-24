@@ -3,6 +3,7 @@
 
 #include <getopt.h>
 #include <stdio.h>
+#include <regex.h>
 
 typedef struct flags {
         int e;
