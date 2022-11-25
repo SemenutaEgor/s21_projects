@@ -17,6 +17,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
       case 'e': {
         flag->e = 1;
         printf("flag e\n");
+        // check for the next pattern
         break;
       }
       case 'i': {
