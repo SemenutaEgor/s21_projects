@@ -78,24 +78,31 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
 
 void files_controller(int optind, int argc, char **argv, dflag flag) {
   FILE *src;
+  regex_t reegex;
+  int value;
 
   while (optind < argc) {
+    //printf("try to open %s\n", argv[optind]);
+    //printf("regcomp value %d\n", value);
     src = fopen(argv[optind], "r");
     if (src) {
-      flags_controller(src, flag);
+      flags_controller(src, flag, &reegex, &value);
       fclose(src);
     } else {
       fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
+      value = regcomp(&reegex, argv[optind], 0);
     }
     optind++;
   }
 }
 
-void flags_controller(FILE *src, dflag flag) {
+void flags_controller(FILE *src, dflag flag, regex_t *reegex, int *value) {
   char *line_buf = NULL;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
-  dbuf buffer = {line_buf};
+  dbuf buffer = {line_buf, line_size};
+  *value = regexec(reegex, buffer.data, 0, NULL, 0);
+  //printf("regexec value %d\n", *value);
   while (line_size >= 0) {
     if (flag.e) {
 	    // flag e
@@ -116,16 +123,24 @@ void flags_controller(FILE *src, dflag flag) {
 	    // flag n
     }
     if (flag.h) {
-	    // flag h
+	    //flag h
     }
-    output();
+    if (*value == 0) {
+      //printf("got pattern\n");
+      output(buffer);
+    }
     line_size = getline(&line_buf, &line_buf_size, src);
+    *value = regexec(reegex, buffer.data, 0, NULL, 0);
+    //printf("regexec value %d\n", *value);
     buffer.data = line_buf;
   }
   free(line_buf);
   line_buf = NULL;
 }
 
-void output() {
-	//output
+void output(dbuf buffer) {
+    ssize_t i = 0;
+    while (i < buffer.size) {
+      putchar(buffer.data[i++]);
+    }
 }
