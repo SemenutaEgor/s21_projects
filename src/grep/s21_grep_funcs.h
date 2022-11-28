@@ -1,6 +1,7 @@
 #ifndef SRC_GREP_S21_GREP_FUNCS_H_
 #define SRC_GREP_S21_GREP_FUNCS_H_
 
+#define _GNU_SOURCE
 #include <getopt.h>
 #include <stdio.h>
 #include <regex.h>

@@ -1,5 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Werror
+GDB=-g
+STD=-std=c11
 SRC_GREP=s21_grep.c s21_grep_funcs.c
 HDR=s21_grep_funcs.h
 EXE_GREP=s21_grep
@@ -9,7 +11,7 @@ EXE_GREP=s21_grep
 all: s21_grep
 
 s21_grep:
-	$(CC) $(CFLAGS) $(SRC_GREP) -o $(EXE_GREP)
+	$(CC) $(CFLAGS) $(STD) $(GDB) $(SRC_GREP) -o $(EXE_GREP)
 
 clean:
 	rm -rf $(EXE_GREP)

@@ -17,6 +17,8 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
       case 'e': {
         flag->e = 1;
         printf("flag e\n");
+        printf("next %s\n", argv[optind]); // take the next argunent after -e
+        //optind++;
         // check for the next pattern
         break;
       }
@@ -89,8 +91,10 @@ void files_controller(int optind, int argc, char **argv, dflag flag) {
       flags_controller(src, flag, &reegex, &value);
       fclose(src);
     } else {
-      fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
+      //fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
       value = regcomp(&reegex, argv[optind], 0);
+      //printf("next %s\n", argv[optind + 1]);
+      //optind++;
     }
     optind++;
   }
