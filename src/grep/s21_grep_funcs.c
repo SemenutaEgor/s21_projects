@@ -89,9 +89,9 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
     }
   }
-  for (size_t i = 0; i < strlen(patterns); i++) {
+  /*for (size_t i = 0; i < strlen(patterns); i++) {
     putchar(patterns[i]);
-  }
+  }*/
   return optind;
 }
 
@@ -128,8 +128,9 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, line_size};
+  printf("data = %s\n", buffer.data);
   *result = regexec(regex, buffer.data, 0, NULL, 0);
-  //printf("regexec value %d\n", *value);
+  printf("result = %d\n", *result);
   while (line_size >= 0) {
     if (flag.e) {
 	    // flag e
@@ -160,8 +161,11 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
       return;
     }
     line_size = getline(&line_buf, &line_buf_size, src);
-    *result = regexec(regex, buffer.data, 0, NULL, 0);
     buffer.data = line_buf;
+    buffer.size = line_size;
+    printf("data = %s\n", buffer.data);
+    *result = regexec(regex, buffer.data, 0, NULL, 0);
+    printf("result = %d\n", *result);
   }
   free(line_buf);
   line_buf = NULL;
