@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <regex.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct flags {
         int e;
@@ -26,7 +27,7 @@ typedef struct string_buffer {
 } dbuf;
 
 void print_result(int value);
-int get_flags(const char* short_options, int argc, char **argv, dflag* flag);
+int get_flags(const char* short_options, int argc, char **argv, dflag* flag, char *patters);
 void files_controller(int optind, int argc, char** argv, dflag flag);
 void flags_controller(FILE *src, dflag flag, regex_t *regeex, int *value);
 void output();

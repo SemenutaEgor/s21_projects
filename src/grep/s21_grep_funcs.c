@@ -10,16 +10,30 @@ void print_result(int value) {
 	}
 }
 
-int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
+char* add_pattern(char *patterns, char *pattern) {
+  size_t new_length = strlen(patterns) + strlen(pattern) + 2; // \0 + |
+  char* new_patterns = realloc(patterns, sizeof(char) * new_length);
+  if (new_patterns) {
+    patterns = new_patterns;
+    strcat(patterns, "|");
+    strcat(patterns, pattern);
+  } else {
+    fprintf(stderr, "Error with allocating memory for patterns");
+    exit(0);
+  }
+  return new_patterns;
+}
+  
+
+int get_flags(const char *short_options, int argc, char **argv, dflag *flag, char* patterns) {
   int res;
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
-        flag->e = 1;
-        printf("flag e\n");
-        printf("next %s\n", argv[optind]); // take the next argunent after -e
-        //optind++;
-        // check for the next pattern
+        flag->e++;
+        //printf("flag e\n");
+        //printf("next %s\n", argv[optind]); // take the next argunent after -e
+        patterns = add_pattern(patterns, argv[optind]);
         break;
       }
       case 'i': {
@@ -74,6 +88,9 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag) {
         break;
       }
     }
+  }
+  for (size_t i = 0; i < strlen(patterns); i++) {
+    putchar(patterns[i]);
   }
   return optind;
 }
