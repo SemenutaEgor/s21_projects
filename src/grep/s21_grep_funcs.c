@@ -95,34 +95,40 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
   return optind;
 }
 
-void files_controller(int optind, int argc, char **argv, dflag flag) {
+void files_controller(int optind, int argc, char **argv, dflag flag, char *patterns) {
   FILE *src;
-  regex_t reegex;
-  int value;
+  regex_t regex;
+  int result;
+  result = regcomp(&regex, patterns, REG_EXTENDED);
+  if (result) {
+    if (result == REG_ESPACE) {
+      fprintf(stderr, "%s\n", strerror(ENOMEM));
+    } else {
+      fprintf(stderr, "Syntax error in the regular expression %s\n", patterns);
+    }
+    return;
+  }
 
   while (optind < argc) {
-    //printf("try to open %s\n", argv[optind]);
-    //printf("regcomp value %d\n", value);
+    char* check = strstr(patterns, argv[optind]);
     src = fopen(argv[optind], "r");
     if (src) {
-      flags_controller(src, flag, &reegex, &value);
+      flags_controller(src, flag, &regex, &result);
       fclose(src);
-    } else {
-      //fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
-      value = regcomp(&reegex, argv[optind], 0);
-      //printf("next %s\n", argv[optind + 1]);
-      //optind++;
+    } else if (!check) {
+      fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
     }
     optind++;
   }
+  regfree(&regex);
 }
 
-void flags_controller(FILE *src, dflag flag, regex_t *reegex, int *value) {
+void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   char *line_buf = NULL;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, line_size};
-  *value = regexec(reegex, buffer.data, 0, NULL, 0);
+  *result = regexec(regex, buffer.data, 0, NULL, 0);
   //printf("regexec value %d\n", *value);
   while (line_size >= 0) {
     if (flag.e) {
@@ -146,17 +152,25 @@ void flags_controller(FILE *src, dflag flag, regex_t *reegex, int *value) {
     if (flag.h) {
 	    //flag h
     }
-    if (*value == 0) {
-      //printf("got pattern\n");
+    if (!(*result)) {
       output(buffer);
+    } else if (*result != REG_NOMATCH) {
+      size_t length = regerror(*result, regex, NULL, 0);
+      print_regerror (*result, length, regex);
+      return;
     }
     line_size = getline(&line_buf, &line_buf_size, src);
-    *value = regexec(reegex, buffer.data, 0, NULL, 0);
-    //printf("regexec value %d\n", *value);
+    *result = regexec(regex, buffer.data, 0, NULL, 0);
     buffer.data = line_buf;
   }
   free(line_buf);
   line_buf = NULL;
+}
+
+void print_regerror (int errcode, size_t length, regex_t *compiled) {
+  char buffer[length];
+  regerror(errcode, compiled, buffer, length);
+  fprintf(stderr, "Regex match failed: %s\n", buffer);
 }
 
 void output(dbuf buffer) {

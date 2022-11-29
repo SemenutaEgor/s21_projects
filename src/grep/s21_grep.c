@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   strcpy(patterns, "");
 
   int optind = get_flags(short_options, argc, argv, &flag, patterns);
-  files_controller(optind, argc, argv, flag);
+  files_controller(optind, argc, argv, flag, patterns);
   
   /*while (optind < argc) {
     printf("%s\n", argv[optind]);
