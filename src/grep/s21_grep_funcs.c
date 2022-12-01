@@ -93,7 +93,14 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
   FILE *src;
   regex_t regex;
   int result;
+  //printf("len = %ld\n", strlen(patterns));
+  //printf("argv[] = %s\n", argv[optind]);
+  if (!strlen(patterns)) {
+    add_pattern(patterns, argv[optind]);
+  }
+  //printf("patterns = %s\n", patterns);
   result = regcomp(&regex, patterns, REG_EXTENDED);
+  //printf("result = %d\n", result);
   if (result) {
     if (result == REG_ESPACE) {
       fprintf(stderr, "%s\n", strerror(ENOMEM));
@@ -105,6 +112,8 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
 
   while (optind < argc) {
     char* check = strstr(patterns, argv[optind]);
+    //printf("check = %s\n", check);
+    if (!check) {
     src = fopen(argv[optind], "r");
     if (src) {
       flags_controller(src, flag, &regex, &result);
@@ -112,6 +121,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
     } else if (!check) {
       fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
     }
+    } else {}
     optind++;
   }
   regfree(&regex);
