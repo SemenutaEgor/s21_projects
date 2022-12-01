@@ -1,22 +1,16 @@
 #include "s21_grep_funcs.h"
 
-void print_result(int value) {
-	if (value == 0) {
-		printf("Pattern found\n");
-	} else if (value == REG_NOMATCH) {
-		printf("Pattern not found\n");
-	} else {
-		printf("An error occured\n");
-	}
-}
-
 char* add_pattern(char *patterns, char *pattern) {
   size_t new_length = strlen(patterns) + strlen(pattern) + 2; // \0 + |
   char* new_patterns = realloc(patterns, sizeof(char) * new_length);
   if (new_patterns) {
     patterns = new_patterns;
-    strcat(patterns, "|");
-    strcat(patterns, pattern);
+    if (strlen(patterns)) {
+      strcat(patterns, "|");
+      strcat(patterns, pattern);
+    } else {
+      strcat(patterns, pattern);
+    }
   } else {
     fprintf(stderr, "Error with allocating memory for patterns");
     exit(0);
@@ -128,9 +122,9 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, line_size};
-  printf("data = %s\n", buffer.data);
+  //printf("data = %s\n", buffer.data);
   *result = regexec(regex, buffer.data, 0, NULL, 0);
-  printf("result = %d\n", *result);
+  //printf("result = %d\n", *result);
   while (line_size >= 0) {
     if (flag.e) {
 	    // flag e
@@ -163,9 +157,9 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
     line_size = getline(&line_buf, &line_buf_size, src);
     buffer.data = line_buf;
     buffer.size = line_size;
-    printf("data = %s\n", buffer.data);
+    //printf("data = %s\n", buffer.data);
     *result = regexec(regex, buffer.data, 0, NULL, 0);
-    printf("result = %d\n", *result);
+    //printf("result = %d\n", *result);
   }
   free(line_buf);
   line_buf = NULL;
