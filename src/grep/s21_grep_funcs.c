@@ -24,7 +24,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
-        flag->e++;
+        //flag->e++;
         //printf("flag e\n");
         //printf("next %s\n", argv[optind]); // take the next argunent after -e
         patterns = add_pattern(patterns, argv[optind]);
@@ -32,7 +32,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 'i': {
         flag->i = 1;
-        printf("flag i\n");
         break;
       }
       case 'v': {
@@ -89,6 +88,14 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
   return optind;
 }
 
+int compile(regex_t *regex, dflag flag, char *patterns) {
+  int cflags = REG_EXTENDED;
+  if (flag.i) {
+    cflags = REG_EXTENDED | REG_ICASE;
+  } 
+  return regcomp(regex, patterns, cflags);
+}
+
 void files_controller(int optind, int argc, char **argv, dflag flag, char *patterns) {
   FILE *src;
   regex_t regex;
@@ -99,7 +106,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
     add_pattern(patterns, argv[optind]);
   }
   //printf("patterns = %s\n", patterns);
-  result = regcomp(&regex, patterns, REG_EXTENDED);
+  result = compile(&regex, flag, patterns);
   //printf("result = %d\n", result);
   if (result) {
     if (result == REG_ESPACE) {
