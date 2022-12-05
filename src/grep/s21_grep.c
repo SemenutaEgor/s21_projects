@@ -2,6 +2,7 @@
 
 int main(int argc, char **argv) {
 
+  if (argc > 2) {
   const char *short_options = "eivclnhsfo";
 
   dflag flag = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -9,6 +10,7 @@ int main(int argc, char **argv) {
   strcpy(patterns, "");
 
   int optind = get_flags(short_options, argc, argv, &flag, patterns);
+
   files_controller(optind, argc, argv, flag, patterns);
   
   /*while (optind < argc) {
@@ -23,6 +25,10 @@ int main(int argc, char **argv) {
   print_result(value);*/
 
   free(patterns);
+  } else {
+    fprintf(stderr, "not enough arguments\n");
+    exit(0);
+  }
 
   return 0;
 }

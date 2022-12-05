@@ -33,6 +33,6 @@ void files_controller(int optind, int argc, char** argv, dflag flag, char *patte
 void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result);
 void print_regerror (int errcode, size_t length, regex_t *compiled);
 int compile(regex_t *regex, dflag flag, char *patterns);
-void output();
+void output(regex_t *regex, int *result, dbuf buffer);
 
 #endif //  SRC_GREP_S21_GREP_FUNCS_H_

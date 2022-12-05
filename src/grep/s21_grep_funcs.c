@@ -12,7 +12,7 @@ char* add_pattern(char *patterns, char *pattern) {
       strcat(patterns, pattern);
     }
   } else {
-    fprintf(stderr, "Error with allocating memory for patterns");
+    fprintf(stderr, "Error with allocating memory for patterns\n");
     exit(0);
   }
   return new_patterns;
@@ -24,9 +24,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
-        //flag->e++;
-        //printf("flag e\n");
-        //printf("next %s\n", argv[optind]); // take the next argunent after -e
         patterns = add_pattern(patterns, argv[optind]);
         break;
       }
@@ -40,7 +37,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 'c': {
         flag->c = 1;
-        printf("flag c\n");
         break;
       }
       case 'l': {
@@ -101,7 +97,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
   int result;
   //printf("len = %ld\n", strlen(patterns));
   //printf("argv[] = %s\n", argv[optind]);
-  if (!strlen(patterns)) {                 /*check when no arguments*/
+  if (!strlen(patterns)) {                 
     add_pattern(patterns, argv[optind]);
   }
   //printf("patterns = %s\n", patterns);
@@ -134,6 +130,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
 }
 
 void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
+  int line_counter = 0;
   char *line_buf = NULL;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
@@ -144,9 +141,12 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   while (line_size >= 0) {
     if (flag.v) {
       *result = !regexec(regex, buffer.data, 0, NULL, 0);
+      if (!flag.c) {
+      output(regex, result, buffer);
+      }
     }
-    if (flag.c) {
-	    // flag c
+    if (flag.c && !(*result)) {
+      line_counter++;
     }
     if (flag.l) {
 	    // flag l
@@ -157,12 +157,8 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
     if (flag.h) {
 	    //flag h
     }
-    if (!(*result)) {
-      output(buffer);
-    } else if (*result != REG_NOMATCH) {
-      size_t length = regerror(*result, regex, NULL, 0);
-      print_regerror (*result, length, regex);
-      return;
+    if (!flag.v && !flag.c) {
+      output(regex, result, buffer);
     }
     line_size = getline(&line_buf, &line_buf_size, src);
     buffer.data = line_buf;
@@ -171,8 +167,21 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
     *result = regexec(regex, buffer.data, 0, NULL, 0);
     //printf("result = %d\n", *result);
   }
+  if (flag.c) {
+    printf("%d\n", line_counter);
+  }
   free(line_buf);
   line_buf = NULL;
+}
+
+void output(regex_t *regex, int *result, dbuf buffer) {
+  if (!(*result)) {
+      printf("%s", buffer.data);
+  } else if (*result != REG_NOMATCH) {
+    size_t length = regerror(*result, regex, NULL, 0);
+    print_regerror (*result, length, regex);
+    return;
+  }
 }
 
 void print_regerror (int errcode, size_t length, regex_t *compiled) {
@@ -181,9 +190,3 @@ void print_regerror (int errcode, size_t length, regex_t *compiled) {
   fprintf(stderr, "Regex match failed: %s\n", buffer);
 }
 
-void output(dbuf buffer) {
-    ssize_t i = 0;
-    while (i < buffer.size) {
-      putchar(buffer.data[i++]);
-    }
-}
