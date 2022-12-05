@@ -36,7 +36,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 'v': {
         flag->v = 1;
-        printf("flag v\n");
         break;
       }
       case 'c': {
@@ -102,7 +101,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
   int result;
   //printf("len = %ld\n", strlen(patterns));
   //printf("argv[] = %s\n", argv[optind]);
-  if (!strlen(patterns)) {
+  if (!strlen(patterns)) {                 /*check when no arguments*/
     add_pattern(patterns, argv[optind]);
   }
   //printf("patterns = %s\n", patterns);
@@ -143,14 +142,8 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   *result = regexec(regex, buffer.data, 0, NULL, 0);
   //printf("result = %d\n", *result);
   while (line_size >= 0) {
-    if (flag.e) {
-	    // flag e
-    }
-    if (flag.i) {
-	    // flag i
-    }
     if (flag.v) {
-	    // flag v
+      *result = !regexec(regex, buffer.data, 0, NULL, 0);
     }
     if (flag.c) {
 	    // flag c
