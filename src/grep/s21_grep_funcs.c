@@ -145,26 +145,26 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
 }
 
 void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *filename, int multifile) {
-  int line_counter = 0;
+  int line_counter = 0, output_suppress = 0;
   char *line_buf = NULL;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, line_size};
-  //printf("data = %s\n", buffer.data);
   *result = regexec(regex, buffer.data, 0, NULL, 0);
-  //printf("result = %d\n", *result);
   while (line_size >= 0) {
     if (flag.v) {
       *result = !regexec(regex, buffer.data, 0, NULL, 0);
       if (!flag.c) {
       output(regex, result, buffer, filename, multifile);
       }
+      output_suppress = 1;
     }
     if (flag.c && !(*result)) {
       line_counter++;
+      output_suppress = 1;
     }
     if (flag.l) {
-	    // flag l
+      output_suppress = 1;
     }
     if (flag.n) {
 	    // flag n
@@ -172,21 +172,27 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *
     if (flag.h) {
 	    //flag h
     }
-    if (!flag.v && !flag.c) {
+    if (!output_suppress) {
       output(regex, result, buffer, filename, multifile);
     }
     line_size = getline(&line_buf, &line_buf_size, src);
     buffer.data = line_buf;
     buffer.size = line_size;
-    //printf("data = %s\n", buffer.data);
     *result = regexec(regex, buffer.data, 0, NULL, 0);
-    //printf("result = %d\n", *result);
   }
   if (flag.c) {
-    printf("%d\n", line_counter);
+    output_c(line_counter, filename, multifile);
   }
   free(line_buf);
   line_buf = NULL;
+}
+
+void output_c(int line_counter, char *filename, int multifile) {
+  if (multifile > 1) {
+      printf("%s:%d\n", filename, line_counter);
+  } else {
+      printf("%d\n", line_counter);
+  }
 }
 
 void output(regex_t *regex, int *result, dbuf buffer, char *filename, int multifile) {
