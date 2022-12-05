@@ -41,7 +41,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 'l': {
         flag->l = 1;
-        printf("flag l\n");
         break;
       }
       case 'n': {
@@ -145,7 +144,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
 }
 
 void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *filename, int multifile) {
-  int line_counter = 0, output_suppress = 0;
+  int line_counter = 0, output_suppress = 0, file_match = 0;
   char *line_buf = NULL;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
@@ -163,8 +162,9 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *
       line_counter++;
       output_suppress = 1;
     }
-    if (flag.l) {
+    if (flag.l && !(*result)) {
       output_suppress = 1;
+      file_match = 1;
     }
     if (flag.n) {
 	    // flag n
@@ -182,6 +182,10 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *
   }
   if (flag.c) {
     output_c(line_counter, filename, multifile);
+  }
+  if (flag.l && file_match) {
+    printf("%s\n", filename);
+    file_match = 0;
   }
   free(line_buf);
   line_buf = NULL;
