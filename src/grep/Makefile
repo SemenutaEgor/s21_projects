@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Werror
 GDB=-g
-STD=-std=c11
+STD=-std=c11 -pedantic
 SRC_GREP=s21_grep.c s21_grep_funcs.c
 HDR=s21_grep_funcs.h
 EXE_GREP=s21_grep

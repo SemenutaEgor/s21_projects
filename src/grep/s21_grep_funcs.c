@@ -91,6 +91,16 @@ int compile(regex_t *regex, dflag flag, char *patterns) {
   return regcomp(regex, patterns, cflags);
 }
 
+int multifile_check(int argc, int optind) {
+  int multifile = 0;
+  while (optind++ < argc) {
+    //printf("%s\n", argv[optind]);
+    //optind++;
+    multifile++;
+  }
+  return multifile;
+}
+
 void files_controller(int optind, int argc, char **argv, dflag flag, char *patterns) {
   FILE *src;
   regex_t regex;
@@ -98,8 +108,13 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
   //printf("len = %ld\n", strlen(patterns));
   //printf("argv[] = %s\n", argv[optind]);
   if (!strlen(patterns)) {                 
-    add_pattern(patterns, argv[optind]);
+    add_pattern(patterns, argv[optind++]);
   }
+
+  /*check for multyfile*/
+  int multifile = multifile_check(argc, optind);
+  //printf("there is %d files\n", multyfile);
+
   //printf("patterns = %s\n", patterns);
   result = compile(&regex, flag, patterns);
   //printf("result = %d\n", result);
@@ -118,7 +133,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
     if (!check) {
     src = fopen(argv[optind], "r");
     if (src) {
-      flags_controller(src, flag, &regex, &result);
+      flags_controller(src, flag, &regex, &result, argv[optind], multifile);
       fclose(src);
     } else if (!check) {
       fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
@@ -129,7 +144,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
   regfree(&regex);
 }
 
-void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
+void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *filename, int multifile) {
   int line_counter = 0;
   char *line_buf = NULL;
   size_t line_buf_size = 0;
@@ -142,7 +157,7 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
     if (flag.v) {
       *result = !regexec(regex, buffer.data, 0, NULL, 0);
       if (!flag.c) {
-      output(regex, result, buffer);
+      output(regex, result, buffer, filename, multifile);
       }
     }
     if (flag.c && !(*result)) {
@@ -158,7 +173,7 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
 	    //flag h
     }
     if (!flag.v && !flag.c) {
-      output(regex, result, buffer);
+      output(regex, result, buffer, filename, multifile);
     }
     line_size = getline(&line_buf, &line_buf_size, src);
     buffer.data = line_buf;
@@ -174,9 +189,13 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result) {
   line_buf = NULL;
 }
 
-void output(regex_t *regex, int *result, dbuf buffer) {
+void output(regex_t *regex, int *result, dbuf buffer, char *filename, int multifile) {
   if (!(*result)) {
+    if (multifile > 1) {
+      printf("%s:%s", filename, buffer.data);
+    } else {
       printf("%s", buffer.data);
+    }
   } else if (*result != REG_NOMATCH) {
     size_t length = regerror(*result, regex, NULL, 0);
     print_regerror (*result, length, regex);
