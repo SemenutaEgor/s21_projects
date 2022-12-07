@@ -28,8 +28,8 @@ typedef struct string_buffer {
 } dbuf;
 
 void print_result(int value);
-int get_flags(const char* short_options, int argc, char **argv, dflag* flag, char *patters);
-void files_controller(int optind, int argc, char** argv, dflag flag, char *patterns);
+int get_flags(const char* short_options, int argc, char **argv, dflag* flag, char *patters, char *patfiles);
+void files_controller(int optind, int argc, char** argv, dflag flag, char *patterns, char *patfiles);
 void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *filename, int multifile);
 void print_regerror (int errcode, size_t length, regex_t *compiled);
 int compile(regex_t *regex, dflag flag, char *patterns);
