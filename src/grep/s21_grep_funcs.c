@@ -133,35 +133,16 @@ int compile(regex_t *regex, dflag flag, char *patterns) {
   return regcomp(regex, patterns, cflags);
 }
 
-int multifile_check(int argc, int optind) {
-  int multifile = 0;
-  while (optind++ < argc) {
-    // printf("%s\n", argv[optind]);
-    // optind++;
-    multifile++;
-  }
-  return multifile;
-}
-
 void files_controller(int optind, int argc, char **argv, dflag flag,
-                      char *patterns/*, char *patfiles*/) {
+                      char *patterns) {
   FILE *src;
   regex_t regex;
-  int result;
-  /*printf("len = %ld\n", strlen(patterns));
-  printf("patterns = %s\n", patterns);
-  printf("argv[] = %s\n", argv[optind]);*/
+  int result, multifile = 0;
   if (!strlen(patterns)) {
     add_to_string(patterns, argv[optind++]);
   }
 
-  /*check for multyfile*/
-  int multifile = multifile_check(argc, optind);
-  // printf("there is %d files\n", multyfile);
-
-  //printf("patterns = %s\n", patterns);
-  result = compile(&regex, flag, patterns);
-  // printf("result = %d\n", result);
+    result = compile(&regex, flag, patterns);
   if (result) {
     if (result == REG_ESPACE) {
       fprintf(stderr, "%s\n", strerror(ENOMEM));
@@ -172,26 +153,20 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
   }
 
   optind = optind + flag.e + flag.f;
+  
+  if (argc - optind > 1) {
+    multifile = 1;
+  }
 
   while (optind < argc) {
-    //char *check_pattern = strstr(patterns, argv[optind]);
-    //char *check_patfile = strstr(patfiles, argv[optind]);
-    // printf("check = %s\n", check);
-    //if (check_pattern || check_patfile) {
-    //} else {
-      /*printf("now in %s\n", argv[optind]);
-      printf("patfiles is %s\n", patfiles);
-      printf("check_pattern is %s\n", check_pattern);
-      printf("check_patfile is %s\n", check_patfile);*/
-      src = fopen(argv[optind], "r");
-      if (src) {
-        flags_controller(src, flag, &regex, &result, argv[optind], multifile);
-        fclose(src);
-      } else if (!flag.s) {
-        fprintf(stderr, "No such file or directory '%s'\n", argv[optind]);
-      }
-   // }
-    optind++;
+    src = fopen(argv[optind], "r");
+    if (src) {
+      flags_controller(src, flag, &regex, &result, argv[optind], multifile);
+      fclose(src);
+    } else if (!flag.s) {
+      fprintf(stderr, "No such file or directory '%s'\n", argv[optind]);
+    }
+  optind++;
   }
   regfree(&regex);
 }
@@ -251,7 +226,7 @@ void output_c(int line_counter, char *filename, int multifile) {
 void output(regex_t *regex, int *result, dbuf buffer, char *filename,
             int multifile, dflag flag, int line) {
   if (!(*result)) {
-    if (multifile > 1 && !flag.h) {
+    if (multifile && !flag.h) {
       printf("%s:", filename);
     }
     if (flag.n) {
