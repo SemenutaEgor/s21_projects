@@ -1,34 +1,20 @@
 #include "s21_grep_funcs.h"
 
-static char *add_patfile(char *patfiles, char *filename) {
-  size_t new_length = strlen(patfiles) + strlen(filename) + 2;
-  char *new_patfiles = realloc(patfiles, sizeof(char) * new_length);
-  if (new_patfiles) {
-    patfiles = new_patfiles;
-    strcat(patfiles, filename);
-  } else {
-    fprintf(stderr, "Error with allocating memory for pattern files\n");
-    exit(0);
-  }
-  return new_patfiles;
-}
-
-static char *add_pattern(char *patterns, char *pattern) {
-  size_t new_length = strlen(patterns) + strlen(pattern) + 2;  // \0 + |
-  char *new_patterns = realloc(patterns, sizeof(char) * new_length);
-  if (new_patterns) {
-    patterns = new_patterns;
-    if (strlen(patterns)) {
-      strcat(patterns, "|");
-      strcat(patterns, pattern);
+static char *add_to_string(char *string, char *word) {
+  size_t new_length = strlen(string) + strlen(word) + 2;  // \0 + |
+  char *new_string = realloc(string, sizeof(char) * new_length);
+  if (new_string) {
+    if (strlen(new_string)) {
+      strcat(new_string, "|");
+      strcat(new_string, word);
     } else {
-      strcat(patterns, pattern);
+      strcat(new_string, word);
     }
   } else {
     fprintf(stderr, "Error with allocating memory for patterns\n");
     exit(0);
   }
-  return new_patterns;
+  return new_string;
 }
 
 static char *cut_pattern(char *line_buf, ssize_t line_size) {
@@ -57,7 +43,7 @@ static char *load_patterns(char *patterns, char *filename, dflag flag) {
       if (!line_buf) {
         return NULL;
       }
-      patterns = add_pattern(patterns, line_buf);
+      patterns = add_to_string(patterns, line_buf);
       line_size = getline(&line_buf, &line_buf_size, patfile);
     }
     free(line_buf);
@@ -75,7 +61,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
-        patterns = add_pattern(patterns, argv[optind]);
+        patterns = add_to_string(patterns, argv[optind]);
         break;
       }
       case 'i': {
@@ -109,7 +95,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
       case 'f': {
         flag->f = 1;
         patterns = load_patterns(patterns, argv[optind], *flag);
-        patfiles = add_patfile(patfiles, argv[optind]);
+        patfiles = add_to_string(patfiles, argv[optind]);
         break;
       }
       case 'o': {
@@ -154,17 +140,18 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
   FILE *src;
   regex_t regex;
   int result;
-  // printf("len = %ld\n", strlen(patterns));
-  // printf("argv[] = %s\n", argv[optind]);
+  printf("len = %ld\n", strlen(patterns));
+  printf("patterns = %s\n", patterns);
+  printf("argv[] = %s\n", argv[optind]);
   if (!strlen(patterns)) {
-    add_pattern(patterns, argv[optind++]);
+    add_to_string(patterns, argv[optind++]);
   }
 
   /*check for multyfile*/
   int multifile = multifile_check(argc, optind);
   // printf("there is %d files\n", multyfile);
 
-  // printf("patterns = %s\n", patterns);
+  printf("patterns = %s\n", patterns);
   result = compile(&regex, flag, patterns);
   // printf("result = %d\n", result);
   if (result) {
