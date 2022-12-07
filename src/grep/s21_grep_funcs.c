@@ -53,7 +53,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 's': {
         flag->s = 1;
-        printf("flag s\n");
         break;
       }
       case 'f': {
@@ -132,8 +131,8 @@ void files_controller(int optind, int argc, char **argv, dflag flag, char *patte
     if (src) {
       flags_controller(src, flag, &regex, &result, argv[optind], multifile);
       fclose(src);
-    } else if (!check) {
-      fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
+    } else if (!check && !flag.s) {
+      fprintf(stderr, "No such file or directory '%s'\n", argv[optind]);
     }
     } else {}
     optind++;
