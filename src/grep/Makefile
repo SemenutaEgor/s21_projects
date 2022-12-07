@@ -24,7 +24,7 @@ clang:
 cpp:
 	cppcheck --enable=all --suppress=missingIncludeSystem $(SRC_GREP)
 
-leaks_cat: $(EXE_GREP)
+leaks: $(EXE_GREP)
 	leaks -atExit -- $(word 1,$^)
 
 valgrind: 
