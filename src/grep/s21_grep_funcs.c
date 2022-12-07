@@ -49,7 +49,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag, cha
       }
       case 'h': {
         flag->h = 1;
-        printf("flag h\n");
         break;
       }
       case 's': {
@@ -165,9 +164,6 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result, char *
       output_suppress = 1;
       file_match = 1;
     }
-    if (flag.h) {
-	    //flag h
-    }
     if (!output_suppress) {
       output(regex, result, buffer, filename, multifile, flag, line);
     }
@@ -198,7 +194,7 @@ void output_c(int line_counter, char *filename, int multifile) {
 
 void output(regex_t *regex, int *result, dbuf buffer, char *filename, int multifile, dflag flag, int line) {
   if (!(*result)) {
-    if (multifile > 1) {
+    if (multifile > 1 && !flag.h) {
       printf("%s:", filename);
     }
     if (flag.n) {
