@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
       optind++;
     }*/
 
-    files_controller(optind, argc, argv, flag, patterns, patfiles);
+    files_controller(optind, argc, argv, flag, patterns/*, patfiles*/);
 
     /*regex_t reegex;
     int value;

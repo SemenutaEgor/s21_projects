@@ -61,6 +61,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
       case 'e': {
+        flag->e++;
         patterns = add_to_string(patterns, argv[optind]);
         break;
       }
@@ -93,7 +94,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
         break;
       }
       case 'f': {
-        flag->f = 1;
+        flag->f++;
         patterns = load_patterns(patterns, argv[optind], *flag);
         patfiles = add_to_string(patfiles, argv[optind]);
         break;
@@ -114,6 +115,13 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   /*for (size_t i = 0; i < strlen(patterns); i++) {
     putchar(patterns[i]);
   }*/
+  /*printf("!!!!!!!!!!!!!!!!!!!!\n");
+  optind = optind + flag->e + flag->f;
+  while (optind < argc) {
+    printf("%s\n", argv[optind]);
+    optind++;
+  }
+  printf("!!!!!!!!!!!!!!!!!!!!\n");*/
   return optind;
 }
 
@@ -136,13 +144,13 @@ int multifile_check(int argc, int optind) {
 }
 
 void files_controller(int optind, int argc, char **argv, dflag flag,
-                      char *patterns, char *patfiles) {
+                      char *patterns/*, char *patfiles*/) {
   FILE *src;
   regex_t regex;
   int result;
-  printf("len = %ld\n", strlen(patterns));
+  /*printf("len = %ld\n", strlen(patterns));
   printf("patterns = %s\n", patterns);
-  printf("argv[] = %s\n", argv[optind]);
+  printf("argv[] = %s\n", argv[optind]);*/
   if (!strlen(patterns)) {
     add_to_string(patterns, argv[optind++]);
   }
@@ -151,7 +159,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
   int multifile = multifile_check(argc, optind);
   // printf("there is %d files\n", multyfile);
 
-  printf("patterns = %s\n", patterns);
+  //printf("patterns = %s\n", patterns);
   result = compile(&regex, flag, patterns);
   // printf("result = %d\n", result);
   if (result) {
@@ -163,16 +171,18 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
     return;
   }
 
+  optind = optind + flag.e + flag.f;
+
   while (optind < argc) {
-    char *check_pattern = strstr(patterns, argv[optind]);
-    char *check_patfile = strstr(patfiles, argv[optind]);
+    //char *check_pattern = strstr(patterns, argv[optind]);
+    //char *check_patfile = strstr(patfiles, argv[optind]);
     // printf("check = %s\n", check);
-    if (check_pattern || check_patfile) {
-    } else {
-      printf("now in %s\n", argv[optind]);
+    //if (check_pattern || check_patfile) {
+    //} else {
+      /*printf("now in %s\n", argv[optind]);
       printf("patfiles is %s\n", patfiles);
       printf("check_pattern is %s\n", check_pattern);
-      printf("check_patfile is %s\n", check_patfile);
+      printf("check_patfile is %s\n", check_patfile);*/
       src = fopen(argv[optind], "r");
       if (src) {
         flags_controller(src, flag, &regex, &result, argv[optind], multifile);
@@ -180,7 +190,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
       } else if (!flag.s) {
         fprintf(stderr, "No such file or directory '%s'\n", argv[optind]);
       }
-    }
+   // }
     optind++;
   }
   regfree(&regex);
@@ -248,11 +258,6 @@ void output(regex_t *regex, int *result, dbuf buffer, char *filename,
       printf("%d:", line);
     }
     printf("%s", buffer.data);
-    /*if (multifile > 1) {
-      printf("%s:%s", filename, buffer.data);
-    } else {
-      printf("%s", buffer.data);
-    }*/
   } else if (*result != REG_NOMATCH) {
     size_t length = regerror(*result, regex, NULL, 0);
     print_regerror(*result, length, regex);
