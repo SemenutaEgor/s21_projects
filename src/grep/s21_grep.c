@@ -5,8 +5,7 @@ int main(int argc, char **argv) {
     const char *short_options = "eivclnhsfo";
 
     dflag flag = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    char *patterns = malloc(sizeof(char));
-    strcpy(patterns, "");
+    char *patterns = (char*)malloc(sizeof(char));
 
     int optind =
         get_flags(short_options, argc, argv, &flag, patterns);

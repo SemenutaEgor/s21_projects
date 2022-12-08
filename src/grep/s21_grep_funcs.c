@@ -1,7 +1,7 @@
 #include "s21_grep_funcs.h"
 
 static char *add_to_string(char *string, char *word) {
-  size_t new_length = strlen(string) + strlen(word) + 2;
+  size_t new_length = strlen(string) + strlen(word);
   char *new_string = realloc(string, sizeof(char) * new_length);
   if (new_string) {
     if (strlen(new_string)) {
@@ -13,7 +13,8 @@ static char *add_to_string(char *string, char *word) {
   } else {
     fprintf(stderr, "Error with allocating memory for patterns\n");
   }
-  printf("NEW PATTERNS: %s\n", new_string);
+  //printf("NEW WORD: %s\n", word);
+  //printf("NEW PATTERNS: %s\n", new_string);
   return new_string;
 }
 
@@ -23,11 +24,14 @@ static char *cut_pattern(char *line_buf, ssize_t line_size) {
     return NULL;
   }
   int i;
-  for (i = 0; i < line_size; i++) {
+  //printf("line_size = %zd\n", line_size);
+  //printf("line_buf in cut: %s\n", line_buf);
+  for (i = 0; i < line_size - 1; i++) {
     if (line_buf[i] != '\n') {
       new_line_buf[i] = line_buf[i];
     }
   }
+  //printf("new_line_buf in cut: %s\n", new_line_buf);
   new_line_buf[i] = 0;
   free(line_buf);
   return new_line_buf;
@@ -41,10 +45,12 @@ static char *load_patterns(char *patterns, char *filename, dflag flag) {
     size_t line_buf_size = 0;
     ssize_t line_size = getline(&line_buf, &line_buf_size, patfile);
     while (line_size >= 0) {
+      //printf("line_buf before cut: %s\n", line_buf);
       line_buf = cut_pattern(line_buf, line_size);
       if (!line_buf) {
         return NULL;
       }
+      //printf("line_buf after cut: %s\n", line_buf);
       patterns = add_to_string(patterns, line_buf);
       line_size = getline(&line_buf, &line_buf_size, patfile);
     }
@@ -64,13 +70,13 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
     switch (res) {
       case 'e': {
         flag->e++;
-        printf("optind before e = %d\n", optind);
-        printf("patterns before e = %s\n", patterns);
+        //printf("optind before e = %d\n", optind);
+        //printf("patterns before e = %s\n", patterns);
         patterns = add_to_string(patterns, argv[optind]);
         *(argv + optind) = NULL;
         optind++;
-        printf("optind after e = %d\n", optind);
-        printf("patterns arter e = %s\n", patterns);
+        //printf("optind after e = %d\n", optind);
+        //printf("patterns arter e = %s\n", patterns);
         break;
       }
       case 'i': {
@@ -103,13 +109,13 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
       }
       case 'f': {
         flag->f = 1;
-        printf("optind before f = %d\n", optind);
-        printf("patterns before f = %s\n", patterns);
+        //printf("optind before f = %d\n", optind);
+        //printf("patterns before f = %s\n", patterns);
         patterns = load_patterns(patterns, argv[optind], *flag);
         *(argv + optind) = NULL;
         optind++;
-        printf("optind after f = %d\n", optind);
-        printf("patterns arter f = %s\n", patterns);
+        //printf("optind after f = %d\n", optind);
+        //printf("patterns arter f = %s\n", patterns);
         break;
       }
       case 'o': {
@@ -126,7 +132,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   }
   /*for (size_t i = 0; i < strlen(patterns); i++) {
     putchar(patterns[i]);
-  }
+  }*/
   printf("!!!!!!!!!!!!!!!!!!!!\n");
   //optind = optind + flag->e + flag->f;
   while (optind < argc) {
@@ -135,7 +141,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
     //}
     optind++;
   }
-  printf("!!!!!!!!!!!!!!!!!!!!\n");*/
+  printf("!!!!!!!!!!!!!!!!!!!!\n");
   return optind;
 }
 
