@@ -135,11 +135,12 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   }*/
   printf("!!!!!!!!!!!!!!!!!!!!\n");
   //optind = optind + flag->e + flag->f;
-  while (optind < argc) {
+  int test_optind = optind;
+  while (test_optind < argc) {
     //if (argv[optind]) {
-      printf("%s\n", *(argv + optind));
+      printf("%s\n", *(argv + test_optind));
     //}
-    optind++;
+    test_optind++;
   }
   printf("!!!!!!!!!!!!!!!!!!!!\n");
   return optind;
@@ -177,8 +178,11 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
   if (argc - optind > 1) {
     multifile = 1;
   }
-
+  
+  printf("optind = %d\n", optind);
+  printf("argc = %d\n", argc);
   while (optind < argc) {
+    printf("argv[optind]= %s\n", argv[optind]);
     src = fopen(argv[optind], "r");
     if (src) {
       flags_controller(src, flag, &regex, &result, argv[optind], multifile);
