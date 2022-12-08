@@ -62,7 +62,11 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
     switch (res) {
       case 'e': {
         flag->e++;
+        printf("optind before add = %d\n", optind);
         patterns = add_to_string(patterns, argv[optind]);
+        *(argv + optind) = NULL;
+        optind++;
+        printf("optind after add = %d\n", optind);
         break;
       }
       case 'i': {
@@ -97,6 +101,8 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
         flag->f++;
         patterns = load_patterns(patterns, argv[optind], *flag);
         patfiles = add_to_string(patfiles, argv[optind]);
+        *(argv + optind) = NULL;
+        optind++;
         break;
       }
       case 'o': {
@@ -113,11 +119,13 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   }
   /*for (size_t i = 0; i < strlen(patterns); i++) {
     putchar(patterns[i]);
-  }*/
-  /*printf("!!!!!!!!!!!!!!!!!!!!\n");
-  optind = optind + flag->e + flag->f;
+  }
+  printf("!!!!!!!!!!!!!!!!!!!!\n");
+  //optind = optind + flag->e + flag->f;
   while (optind < argc) {
-    printf("%s\n", argv[optind]);
+    //if (argv[optind]) {
+      printf("%s\n", *(argv + optind));
+    //}
     optind++;
   }
   printf("!!!!!!!!!!!!!!!!!!!!\n");*/
@@ -233,7 +241,7 @@ void output(regex_t *regex, int *result, dbuf buffer, char *filename,
       printf("%d:", line);
     }
     if (flag.o) {
-      printf("%.*s\n", match.rm_eo - match.rm_so, buffer.data + match.rm_so);
+      printf("%.*s\n", (int)(match.rm_eo - match.rm_so), buffer.data + match.rm_so);
     } else {
       printf("%s", buffer.data);
     }
