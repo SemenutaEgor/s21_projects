@@ -7,18 +7,16 @@ int main(int argc, char **argv) {
     dflag flag = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     char *patterns = malloc(sizeof(char));
     strcpy(patterns, "");
-    char *patfiles = malloc(sizeof(char));
-    strcpy(patfiles, "");
 
     int optind =
-        get_flags(short_options, argc, argv, &flag, patterns, patfiles);
+        get_flags(short_options, argc, argv, &flag, patterns);
 
     /*while (optind < argc) {
       printf("%s\n", argv[optind]);
       optind++;
     }*/
 
-    files_controller(optind, argc, argv, flag, patterns/*, patfiles*/);
+    files_controller(optind, argc, argv, flag, patterns);
 
     /*regex_t reegex;
     int value;
@@ -27,10 +25,8 @@ int main(int argc, char **argv) {
     print_result(value);*/
 
     free(patterns);
-    free(patfiles);
   } else {
     fprintf(stderr, "not enough arguments\n");
-    exit(0);
   }
 
   return 0;

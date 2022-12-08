@@ -12,7 +12,6 @@ static char *add_to_string(char *string, char *word) {
     }
   } else {
     fprintf(stderr, "Error with allocating memory for patterns\n");
-    exit(0);
   }
   return new_string;
 }
@@ -56,7 +55,7 @@ static char *load_patterns(char *patterns, char *filename, dflag flag) {
 }
 
 int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
-              char *patterns, char *patfiles) {
+              char *patterns) {
   int res;
   while ((res = getopt_long(argc, argv, short_options, 0, 0)) != -1) {
     switch (res) {
@@ -100,7 +99,6 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
       case 'f': {
         flag->f++;
         patterns = load_patterns(patterns, argv[optind], *flag);
-        patfiles = add_to_string(patfiles, argv[optind]);
         *(argv + optind) = NULL;
         optind++;
         break;
