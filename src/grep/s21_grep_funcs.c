@@ -62,11 +62,11 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
     switch (res) {
       case 'e': {
         flag->e++;
-        printf("optind before add = %d\n", optind);
+        //printf("optind before add = %d\n", optind);
         patterns = add_to_string(patterns, argv[optind]);
         *(argv + optind) = NULL;
         optind++;
-        printf("optind after add = %d\n", optind);
+        //printf("optind after add = %d\n", optind);
         break;
       }
       case 'i': {
@@ -158,8 +158,6 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
     }
     return;
   }
-
-  optind = optind + flag.e + flag.f;
   
   if (argc - optind > 1) {
     multifile = 1;
@@ -171,7 +169,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
       flags_controller(src, flag, &regex, &result, argv[optind], multifile);
       fclose(src);
     } else if (!flag.s) {
-      fprintf(stderr, "No such file or directory '%s'\n", argv[optind]);
+      fprintf(stderr, "s21_grep: %s: No such file or directory\n", argv[optind]);
     }
   optind++;
   }
