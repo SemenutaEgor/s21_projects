@@ -1,7 +1,7 @@
 #include "s21_grep_funcs.h"
 
 static char *add_to_string(char *string, char *word) {
-  size_t new_length = strlen(string) + strlen(word) + 2;  // \0 + |
+  size_t new_length = strlen(string) + strlen(word) + 2;
   char *new_string = realloc(string, sizeof(char) * new_length);
   if (new_string) {
     if (strlen(new_string)) {
@@ -13,6 +13,7 @@ static char *add_to_string(char *string, char *word) {
   } else {
     fprintf(stderr, "Error with allocating memory for patterns\n");
   }
+  printf("NEW PATTERNS: %s\n", new_string);
   return new_string;
 }
 
@@ -22,8 +23,10 @@ static char *cut_pattern(char *line_buf, ssize_t line_size) {
     return NULL;
   }
   int i;
-  for (i = 0; i < line_size - 1; i++) {
-    new_line_buf[i] = line_buf[i];
+  for (i = 0; i < line_size; i++) {
+    if (line_buf[i] != '\n') {
+      new_line_buf[i] = line_buf[i];
+    }
   }
   new_line_buf[i] = 0;
   free(line_buf);
@@ -61,11 +64,13 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
     switch (res) {
       case 'e': {
         flag->e++;
-        //printf("optind before add = %d\n", optind);
+        printf("optind before e = %d\n", optind);
+        printf("patterns before e = %s\n", patterns);
         patterns = add_to_string(patterns, argv[optind]);
         *(argv + optind) = NULL;
         optind++;
-        //printf("optind after add = %d\n", optind);
+        printf("optind after e = %d\n", optind);
+        printf("patterns arter e = %s\n", patterns);
         break;
       }
       case 'i': {
@@ -97,10 +102,14 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
         break;
       }
       case 'f': {
-        flag->f++;
+        flag->f = 1;
+        printf("optind before f = %d\n", optind);
+        printf("patterns before f = %s\n", patterns);
         patterns = load_patterns(patterns, argv[optind], *flag);
         *(argv + optind) = NULL;
         optind++;
+        printf("optind after f = %d\n", optind);
+        printf("patterns arter f = %s\n", patterns);
         break;
       }
       case 'o': {
@@ -147,7 +156,9 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
     add_to_string(patterns, argv[optind++]);
   }
 
-    result = compile(&regex, flag, patterns);
+  printf("PATTERNS: %s\n", patterns);
+  
+  result = compile(&regex, flag, patterns);
   if (result) {
     if (result == REG_ESPACE) {
       fprintf(stderr, "%s\n", strerror(ENOMEM));

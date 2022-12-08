@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
       printf("%s\n", argv[optind]);
       optind++;
     }*/
+    printf("PATTERNS IN MAIN: %s\n", patterns);
 
     files_controller(optind, argc, argv, flag, patterns);
 
