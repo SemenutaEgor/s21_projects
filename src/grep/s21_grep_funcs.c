@@ -3,7 +3,7 @@
 static char *add_to_string(char *string, char *word) {
   char *new_string = NULL;
   if (string) {
-    size_t new_length = strlen(string) + strlen(word) + 1;
+    size_t new_length = strlen(string) + strlen(word) + 2;
     new_string = realloc(string, sizeof(char) * new_length);
     if (new_string) {
       if (strlen(new_string)) {
@@ -15,7 +15,7 @@ static char *add_to_string(char *string, char *word) {
     }
   } else {
     size_t new_length = strlen(word);
-    new_string = malloc(sizeof(char) * new_length);
+    new_string = malloc(sizeof(char) * new_length + 1);
     if (new_string) {
       strcpy(new_string, word);
     } else {
@@ -27,15 +27,6 @@ static char *add_to_string(char *string, char *word) {
   return new_string;
 }
 
-static char *cut_pattern(char *line_buf) {
-  char *new_line_buf = NULL;
-  new_line_buf = realloc(line_buf, sizeof(char) * strlen(line_buf));
-  if (!new_line_buf) {
-      fprintf(stderr, "Error with allocating memory for patterns\n");
-  }
-  return new_line_buf;
-}
-
 static char *load_patterns(char *patterns, char *filename, dflag flag) {
   FILE *patfile;
   patfile = fopen(filename, "r");
@@ -45,7 +36,8 @@ static char *load_patterns(char *patterns, char *filename, dflag flag) {
     ssize_t line_size = getline(&line_buf, &line_buf_size, patfile);
     while (line_size >= 0) {
       //printf("line_buf before cut: %s\n", line_buf);
-      line_buf = cut_pattern(line_buf);
+      //line_buf = cut_pattern(line_buf);
+      line_buf[strcspn(line_buf, "\n")] = 0;
       if (!line_buf) {
         return NULL;
       }
@@ -114,7 +106,7 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
         *(argv + optind) = NULL;
         optind++;
         //printf("optind after f = %d\n", optind);
-        //printf("patterns arter f = %s\n", patterns);
+        //printf("patterns arter f = %s\n", *patterns);
         break;
       }
       case 'o': {
