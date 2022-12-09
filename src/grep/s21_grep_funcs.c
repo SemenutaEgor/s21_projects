@@ -191,16 +191,8 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   regmatch_t match;
-  dbuf buffer = {line_buf, line_size};
-  *result = regexec(regex, buffer.data, 1, &match, 0);
+  *result = regexec(regex, line_buf, 1, &match, 0);
   while (line_size >= 0) {
-    if (flag.v) {
-      *result = !regexec(regex, buffer.data, 1, &match, 0);
-      if (!flag.c) {
-        output(regex, result, buffer, filename, multifile, flag, line, match);
-      }
-      output_suppress = 1;
-    }
     if (flag.c && !(*result)) {
       line_counter++;
       output_suppress = 1;
@@ -210,12 +202,10 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
       file_match = 1;
     }
     if (!output_suppress) {
-      output(regex, result, buffer, filename, multifile, flag, line, match);
+      output(regex, result, line_buf, filename, multifile, flag, line, match);
     }
     line_size = getline(&line_buf, &line_buf_size, src);
-    buffer.data = line_buf;
-    buffer.size = line_size;
-    *result = regexec(regex, buffer.data, 1, &match, 0);
+    *result = regexec(regex, line_buf, 1, &match, 0);
     line++;
   }
   if (flag.c) {
@@ -237,8 +227,11 @@ void output_c(int line_counter, char *filename, int multifile) {
   }
 }
 
-void output(regex_t *regex, int *result, dbuf buffer, char *filename,
+void output(regex_t *regex, int *result, char *line_buf, char *filename,
             int multifile, dflag flag, int line, regmatch_t match) {
+  if (flag.v) {
+    *result = !(*result);
+  }
   if (!(*result)) {
     if (multifile && !flag.h) {
       printf("%s:", filename);
@@ -247,9 +240,12 @@ void output(regex_t *regex, int *result, dbuf buffer, char *filename,
       printf("%d:", line);
     }
     if (flag.o) {
-      printf("%.*s\n", (int)(match.rm_eo - match.rm_so), buffer.data + match.rm_so);
+      printf("%.*s\n", (int)(match.rm_eo - match.rm_so), line_buf + match.rm_so);
     } else {
-      printf("%s", buffer.data);
+      printf("%s", line_buf);
+    }
+    if (!strstr(line_buf, "\n")) {
+      printf("\n");
     }
   } else if (*result != REG_NOMATCH) {
     size_t length = regerror(*result, regex, NULL, 0);
