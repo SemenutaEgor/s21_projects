@@ -26,7 +26,7 @@ static char *cut_pattern(char *line_buf, ssize_t line_size) {
   int i;
   //printf("line_size = %zd\n", line_size);
   //printf("line_buf in cut: %s\n", line_buf);
-  for (i = 0; i < line_size - 1; i++) {
+  for (i = 0; i < line_size; i++) {
     if (line_buf[i] != '\n') {
       new_line_buf[i] = line_buf[i];
     }
@@ -133,16 +133,14 @@ int get_flags(const char *short_options, int argc, char **argv, dflag *flag,
   /*for (size_t i = 0; i < strlen(patterns); i++) {
     putchar(patterns[i]);
   }*/
-  printf("!!!!!!!!!!!!!!!!!!!!\n");
+  /*printf("!!!!!!!!!!!!!!!!!!!!\n");
   //optind = optind + flag->e + flag->f;
   int test_optind = optind;
   while (test_optind < argc) {
-    //if (argv[optind]) {
       printf("%s\n", *(argv + test_optind));
-    //}
     test_optind++;
   }
-  printf("!!!!!!!!!!!!!!!!!!!!\n");
+  printf("!!!!!!!!!!!!!!!!!!!!\n");*/
   return optind;
 }
 
@@ -163,7 +161,7 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
     add_to_string(patterns, argv[optind++]);
   }
 
-  printf("PATTERNS: %s\n", patterns);
+  //printf("PATTERNS: %s\n", patterns);
   
   result = compile(&regex, flag, patterns);
   if (result) {
@@ -179,10 +177,10 @@ void files_controller(int optind, int argc, char **argv, dflag flag,
     multifile = 1;
   }
   
-  printf("optind = %d\n", optind);
-  printf("argc = %d\n", argc);
+  //printf("optind = %d\n", optind);
+  //printf("argc = %d\n", argc);
   while (optind < argc) {
-    printf("argv[optind]= %s\n", argv[optind]);
+    //printf("argv[optind]= %s\n", argv[optind]);
     src = fopen(argv[optind], "r");
     if (src) {
       flags_controller(src, flag, &regex, &result, argv[optind], multifile);

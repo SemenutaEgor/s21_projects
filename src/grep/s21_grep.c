@@ -14,15 +14,9 @@ int main(int argc, char **argv) {
       printf("%s\n", argv[optind]);
       optind++;
     }*/
-    printf("PATTERNS IN MAIN: %s\n", patterns);
+    //printf("PATTERNS IN MAIN: %s\n", patterns);
 
     files_controller(optind, argc, argv, flag, patterns);
-
-    /*regex_t reegex;
-    int value;
-    value = regcomp(&reegex, "test", 0);
-    value = regexec(&reegex, "test string", 0, NULL, 0);
-    print_result(value);*/
 
     free(patterns);
   } else {
