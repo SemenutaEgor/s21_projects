@@ -35,6 +35,6 @@ void print_regerror (int errcode, size_t length, regex_t *compiled);
 int compile(regex_t *regex, dflag flag, char *patterns);
 int multifile_check(int argc, int optind);
 void output(regex_t *regex, int *result, char*, char *filename, int multifile, dflag flag, int line, regmatch_t match);
-void output_c(int line_counter, char *filename, int multifile);
+void output_c(int line_counter, int line, dflag flag, char *filename, int multifile);
 
 #endif //  SRC_GREP_S21_GREP_FUNCS_H_

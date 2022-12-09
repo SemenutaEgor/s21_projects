@@ -193,8 +193,10 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
   regmatch_t match;
   *result = regexec(regex, line_buf, 1, &match, 0);
   while (line_size >= 0) {
-    if (flag.c && !(*result)) {
+    if (flag.c) {
+      if (!(*result)) {
       line_counter++;
+      }
       output_suppress = 1;
     }
     if (flag.l && !(*result)) {
@@ -209,7 +211,8 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
     line++;
   }
   if (flag.c) {
-    output_c(line_counter, filename, multifile);
+    output_c(line_counter, line, flag, filename, multifile);
+    //printf("-VC = %d\n", line - line_counter);
   }
   if (flag.l && file_match) {
     printf("%s\n", filename);
@@ -219,7 +222,10 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
   line_buf = NULL;
 }
 
-void output_c(int line_counter, char *filename, int multifile) {
+void output_c(int line_counter, int line, dflag flag, char *filename, int multifile) {
+  if (flag.v) {
+    line_counter = line - line_counter - 1;
+  }
   if (multifile) {
     printf("%s:%d\n", filename, line_counter);
   } else {
