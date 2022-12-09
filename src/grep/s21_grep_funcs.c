@@ -220,7 +220,7 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
 }
 
 void output_c(int line_counter, char *filename, int multifile) {
-  if (multifile > 1) {
+  if (multifile) {
     printf("%s:%d\n", filename, line_counter);
   } else {
     printf("%d\n", line_counter);
