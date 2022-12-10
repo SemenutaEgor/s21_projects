@@ -54,7 +54,7 @@ static void restart_prev_empty(int const curr_empty, int *prev_empty) {
   }
 }
 
-static void output(const dbuf buffer, int const squeeze, int const prev_empty,
+static void output(dbuf buffer, int const squeeze, int const prev_empty,
                    int *new_line) {
   if (!(squeeze && buffer.empty && prev_empty)) {
     if (buffer.number) {
@@ -95,34 +95,26 @@ static void flag_s(dbuf *buffer) {
 
 /*make nonprinting symbols visible*/
 static void flag_v(dbuf *buffer) {
-  //enum sym_codes sym;
-  char *new_data = (char *)malloc(sizeof(char) * buffer->size * 2); /*allocate x2 memory for each symbol*/
+  char *new_data =  (char *)malloc(sizeof(char) * buffer->size * 2); /*allocate x2 memory for each symbol*/
   if (new_data) {
     ssize_t i = 0;
     int j = 0, code = 0;
     while (i < buffer->size) {
       code = buffer->data[i++];
-      if (code <= UNIT_SEP && code != 9 && code != 10 && code != 13) {
+      if (code <= UNIT_SEP && code != HOR_TAB && code != LINE_FEED && code != CAR_RET) {
         new_data[j++] = '^';
-        new_data[j++] = code + 64;
-      } else if (code == 127) {
+        new_data[j++] = code + ALP_START;
+      } else if (code == DEL) {
         new_data[j++] = '^';
-        new_data[j++] = 63;
+        new_data[j++] = ALP_START - 1;
       } else {
         new_data[j++] = code;
       }
     }
-    buffer->size = j;
-    new_data = realloc(new_data, sizeof(char) * buffer->size);
-    if (new_data) {
-      buffer->data = new_data;
+    buffer->size = j; 
+    buffer->data = new_data;
     } else {
-      fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
-      exit(1);
-    }
-  } else {
-    fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
-    exit(1);
+    fprintf(stderr, "s21_cat: error with memory allocating\n");
   }
 }
 
@@ -146,6 +138,7 @@ static void flag_e(dbuf *buffer) {
 
 static void flag_t(dbuf *buffer) {
   char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+  if (new_data) {
   ssize_t i = 0;
   int j = 0, code = 0;
   while (i < buffer->size) {
@@ -158,8 +151,13 @@ static void flag_t(dbuf *buffer) {
     }
   }
   buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
+  if (buffer->data) {
+    free(buffer->data); /*because new_data has new address*/
+  }
   buffer->data = new_data;
+  } else {
+    fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
+  }
 }
 
 static void flags_controller(FILE *src, dflag flag, int *prev_empty,
@@ -194,6 +192,9 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
       flag_e(&buffer);
     }
     output(buffer, flag.s, *prev_empty, new_line);
+    if (flag.t) {
+      free(buffer.data);
+    }
     restart_prev_empty(buffer.empty, prev_empty);
     buffer.size = getline(&line_buf, &line_buf_size, src);
     buffer.data = line_buf;

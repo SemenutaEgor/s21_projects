@@ -13,7 +13,6 @@ static char *add_to_string(char *string, const char *word) {
       }
     } else {
       fprintf(stderr, "s21_grep: error with allocating memory for patterns\n");
-      exit(1);
     }
   } else { /*if string of patterns was empty*/
     size_t new_length = strlen(word);
@@ -22,7 +21,6 @@ static char *add_to_string(char *string, const char *word) {
       strcpy(new_string, word);
     } else {
       fprintf(stderr, "s21_grep: error with allocating memory for patterns\n");
-      exit(1);
     }
   }
   return new_string;
