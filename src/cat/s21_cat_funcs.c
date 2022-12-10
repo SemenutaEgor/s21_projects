@@ -1,10 +1,9 @@
 #include "s21_cat_funcs.h"
 
+/*parsing arguments of command line*/
 int get_flags(const char *short_options, const struct option long_options[],
               int argc, char **argv, dflag *flag) {
-  int option_index;
-  int res;
-
+  int option_index = 0, res = 0;
   while ((res = getopt_long(argc, argv, short_options, long_options,
                             &option_index)) != -1) {
     switch (res) {
@@ -39,7 +38,7 @@ int get_flags(const char *short_options, const struct option long_options[],
 
       case '?':
       default: {
-        printf("found unknown option");
+        printf("s21_cat: invalid option -- '%c'\n", res);
         break;
       }
     }
@@ -47,24 +46,7 @@ int get_flags(const char *short_options, const struct option long_options[],
   return optind;
 }
 
-void files_controller(int optind, int argc, char **argv, dflag flag) {
-  FILE *src;
-  int prev_empty = 0, all_count = 1, non_empty_count = 1, new_line = 1;
-
-  while (optind < argc) {
-    src = fopen(argv[optind], "r");
-    if (src) {
-      flags_controller(src, flag, &prev_empty, &all_count, &non_empty_count,
-                       &new_line);
-      fclose(src);
-    } else {
-      fprintf(stderr, "Error opening file '%s'\n", argv[optind]);
-    }
-    optind++;
-  }
-}
-
-void restart_prev_empty(int curr_empty, int *prev_empty) {
+static void restart_prev_empty(int const curr_empty, int *prev_empty) {
   if (curr_empty) {
     *prev_empty = 1;
   } else {
@@ -72,9 +54,105 @@ void restart_prev_empty(int curr_empty, int *prev_empty) {
   }
 }
 
-void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count,
+static void output(const dbuf buffer, int const squeeze, int const prev_empty, int *new_line) {
+  if (!(squeeze && buffer.empty && prev_empty)) {
+    if (buffer.number) {
+      printf("%6d\t", buffer.number);
+    }
+    ssize_t i = 0;
+    while (i < buffer.size) {
+      putchar(buffer.data[i++]);
+    }
+    if (buffer.data[i - 1] == '\n') {
+      *new_line = 1;
+    } else {
+      *new_line = 0;
+    }
+  }
+}
+
+static void flag_n(dbuf *buffer, int *all_count, const int squeeze, const int prev_empty,
+            const int new_line) {
+  if (!(squeeze && buffer->empty && prev_empty) && new_line) {
+    buffer->number = (*all_count)++;
+  }
+}
+
+static void flag_b(dbuf *buffer, int *non_empty_count, const int new_line) {
+  if ((buffer->size != 1) && new_line) {
+    buffer->number = (*non_empty_count)++;
+  } else {
+    buffer->number = 0;
+  }
+}
+
+static void flag_s(dbuf *buffer) {
+  if (buffer->size == 1) {
+    buffer->empty = 1;
+  }
+}
+
+static void flag_v(dbuf *buffer) {
+  char *new_data = (char*)malloc(sizeof(char) * buffer->size * 2);
+  ssize_t i = 0;
+  int j = 0, code = 0;
+  while (i < buffer->size) {
+    code = buffer->data[i++];
+    if (code <= 31 && code != 9 && code != 10 && code != 13) {
+      new_data[j++] = '^';
+      new_data[j++] = code + 64;
+    } else if (code == 127) {
+      new_data[j++] = '^';
+      new_data[j++] = 63;
+    } else {
+      new_data[j++] = code;
+    }
+  }
+  buffer->size = j;
+  new_data = realloc(new_data, sizeof(char) * buffer->size);
+  buffer->data = new_data;
+}
+
+static void flag_e(dbuf *buffer) {
+  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+  ssize_t i = 0;
+  int j = 0, code = 0;
+  while (i < buffer->size) {
+    code = buffer->data[i++];
+    if (code == 10) {
+      new_data[j++] = '$';
+      new_data[j++] = '\n';
+    } else {
+      new_data[j++] = code;
+    }
+  }
+  buffer->size = j;
+  new_data = realloc(new_data, sizeof(char) * buffer->size);
+  buffer->data = new_data;
+}
+
+static void flag_t(dbuf *buffer) {
+  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+  ssize_t i = 0;
+  int j = 0, code = 0;
+  while (i < buffer->size) {
+    code = buffer->data[i++];
+    if (code == 9) {
+      new_data[j++] = '^';
+      new_data[j++] = 'I';
+    } else {
+      new_data[j++] = code;
+    }
+  }
+  buffer->size = j;
+  new_data = realloc(new_data, sizeof(char) * buffer->size);
+  buffer->data = new_data;
+}
+
+
+static void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count,
                       int *non_empty_count, int *new_line) {
-  char *line_buf = NULL;
+  char *line_buf = NULL; /*for store string*/
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, 0, 0, line_size};
@@ -113,97 +191,19 @@ void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count,
   line_buf = NULL;
 }
 
-void flag_n(dbuf *buffer, int *all_count, int squeeze, int prev_empty,
-            int new_line) {
-  if (!(squeeze && buffer->empty && prev_empty) && new_line) {
-    buffer->number = (*all_count)++;
-  }
-}
+void files_controller(int optind, const int argc, char **argv, dflag flag) {
+  FILE *src;
+  int prev_empty = 0, all_count = 1, non_empty_count = 1, new_line = 1;
 
-void flag_b(dbuf *buffer, int *non_empty_count, int new_line) {
-  if ((buffer->size != 1) && new_line) {
-    buffer->number = (*non_empty_count)++;
-  } else {
-    buffer->number = 0;
-  }
-}
-
-void flag_s(dbuf *buffer) {
-  if (buffer->size == 1) {
-    buffer->empty = 1;
-  }
-}
-
-void flag_v(dbuf *buffer) {
-  char *new_data = malloc(sizeof(char) * buffer->size * 2);
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code <= 31 && code != 9 && code != 10 && code != 13) {
-      new_data[j++] = '^';
-      new_data[j++] = code + 64;
-    } else if (code == 127) {
-      new_data[j++] = '^';
-      new_data[j++] = 63;
+  while (optind < argc) {
+    src = fopen(argv[optind], "r");
+    if (src) {
+      flags_controller(src, flag, &prev_empty, &all_count, &non_empty_count,
+                       &new_line);
+      fclose(src);
     } else {
-      new_data[j++] = code;
+      fprintf(stderr, "s21_cat: %s: No such file or directory\n", argv[optind]);
     }
-  }
-  buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
-  buffer->data = new_data;
-}
-
-void flag_e(dbuf *buffer) {
-  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code == 10) {
-      new_data[j++] = '$';
-      new_data[j++] = '\n';
-    } else {
-      new_data[j++] = code;
-    }
-  }
-  buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
-  buffer->data = new_data;
-}
-
-void flag_t(dbuf *buffer) {
-  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code == 9) {
-      new_data[j++] = '^';
-      new_data[j++] = 'I';
-    } else {
-      new_data[j++] = code;
-    }
-  }
-  buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
-  buffer->data = new_data;
-}
-
-void output(dbuf buffer, int squeeze, int prev_empty, int *new_line) {
-  if (!(squeeze && buffer.empty && prev_empty)) {
-    if (buffer.number) {
-      printf("%6d\t", buffer.number);
-    }
-    ssize_t i = 0;
-    while (i < buffer.size) {
-      putchar(buffer.data[i++]);
-    }
-    if (buffer.data[i - 1] == '\n') {
-      *new_line = 1;
-    } else {
-      *new_line = 0;
-    }
+    optind++;
   }
 }
