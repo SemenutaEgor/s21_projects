@@ -195,13 +195,15 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
   while (line_size >= 0) {
     if (flag.c) {
       if (!(*result)) {
-      line_counter++;
+        line_counter++;
       }
       output_suppress = 1;
     }
-    if (flag.l && !(*result)) {
+    if (flag.l) {
+      if (!(*result)) {
+        file_match = 1;
+      }
       output_suppress = 1;
-      file_match = 1;
     }
     if (!output_suppress) {
       output(regex, result, line_buf, filename, multifile, flag, line, match);
