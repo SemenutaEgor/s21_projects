@@ -22,6 +22,15 @@ typedef struct string_buffer {
     ssize_t size;
 } dbuf;
 
+enum sym_codes {
+  HOR_TAB = 9,
+  LINE_FEED = 10, 
+  CAR_RET = 13,
+  UNIT_SEP = 31,
+  ALP_START = 64,
+  DEL = 127
+};
+
 int get_flags(const char* short_options, const struct option long_options[], int argc, char **argv, dflag* flag);
 void files_controller(int optind, const int argc, char** argv, dflag flag);
 

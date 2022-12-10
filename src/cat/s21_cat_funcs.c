@@ -54,7 +54,8 @@ static void restart_prev_empty(int const curr_empty, int *prev_empty) {
   }
 }
 
-static void output(const dbuf buffer, int const squeeze, int const prev_empty, int *new_line) {
+static void output(const dbuf buffer, int const squeeze, int const prev_empty,
+                   int *new_line) {
   if (!(squeeze && buffer.empty && prev_empty)) {
     if (buffer.number) {
       printf("%6d\t", buffer.number);
@@ -71,8 +72,8 @@ static void output(const dbuf buffer, int const squeeze, int const prev_empty, i
   }
 }
 
-static void flag_n(dbuf *buffer, int *all_count, const int squeeze, const int prev_empty,
-            const int new_line) {
+static void flag_n(dbuf *buffer, int *all_count, const int squeeze,
+                   const int prev_empty, const int new_line) {
   if (!(squeeze && buffer->empty && prev_empty) && new_line) {
     buffer->number = (*all_count)++;
   }
@@ -92,25 +93,37 @@ static void flag_s(dbuf *buffer) {
   }
 }
 
+/*make nonprinting symbols visible*/
 static void flag_v(dbuf *buffer) {
-  char *new_data = (char*)malloc(sizeof(char) * buffer->size * 2);
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code <= 31 && code != 9 && code != 10 && code != 13) {
-      new_data[j++] = '^';
-      new_data[j++] = code + 64;
-    } else if (code == 127) {
-      new_data[j++] = '^';
-      new_data[j++] = 63;
-    } else {
-      new_data[j++] = code;
+  //enum sym_codes sym;
+  char *new_data = (char *)malloc(sizeof(char) * buffer->size * 2); /*allocate x2 memory for each symbol*/
+  if (new_data) {
+    ssize_t i = 0;
+    int j = 0, code = 0;
+    while (i < buffer->size) {
+      code = buffer->data[i++];
+      if (code <= UNIT_SEP && code != 9 && code != 10 && code != 13) {
+        new_data[j++] = '^';
+        new_data[j++] = code + 64;
+      } else if (code == 127) {
+        new_data[j++] = '^';
+        new_data[j++] = 63;
+      } else {
+        new_data[j++] = code;
+      }
     }
+    buffer->size = j;
+    new_data = realloc(new_data, sizeof(char) * buffer->size);
+    if (new_data) {
+      buffer->data = new_data;
+    } else {
+      fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
+      exit(1);
+    }
+  } else {
+    fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
+    exit(1);
   }
-  buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
-  buffer->data = new_data;
 }
 
 static void flag_e(dbuf *buffer) {
@@ -149,9 +162,9 @@ static void flag_t(dbuf *buffer) {
   buffer->data = new_data;
 }
 
-
-static void flags_controller(FILE *src, dflag flag, int *prev_empty, int *all_count,
-                      int *non_empty_count, int *new_line) {
+static void flags_controller(FILE *src, dflag flag, int *prev_empty,
+                             int *all_count, int *non_empty_count,
+                             int *new_line) {
   char *line_buf = NULL; /*for store string*/
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
