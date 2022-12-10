@@ -212,7 +212,7 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
     *result = regexec(regex, line_buf, 1, &match, 0);
     line++;
   }
-  if (flag.c) {
+  if (flag.c && !flag.l) {
     output_c(line_counter, line, flag, filename, multifile);
     //printf("-VC = %d\n", line - line_counter);
   }
@@ -228,7 +228,7 @@ void output_c(int line_counter, int line, dflag flag, char *filename, int multif
   if (flag.v) {
     line_counter = line - line_counter - 1;
   }
-  if (multifile) {
+  if (multifile && !flag.h) {
     printf("%s:%d\n", filename, line_counter);
   } else {
     printf("%d\n", line_counter);
