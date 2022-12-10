@@ -205,6 +205,9 @@ void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
       }
       output_suppress = 1;
     }
+    if (flag.o && flag.v) {
+      output_suppress = 1;
+    }
     if (!output_suppress) {
       output(regex, result, line_buf, filename, multifile, flag, line, match);
     }
@@ -249,6 +252,15 @@ void output(regex_t *regex, int *result, char *line_buf, char *filename,
     }
     if (flag.o) {
       printf("%.*s\n", (int)(match.rm_eo - match.rm_so), line_buf + match.rm_so);
+      char *remain_line = line_buf + match.rm_eo;
+      if (flag.v) {
+        *result = !regexec(regex, remain_line, 1, &match, 0);
+      } else {
+        *result = regexec(regex, remain_line, 1, &match, 0);
+      }
+      while (!(*result)) {
+        output(regex, result, remain_line, filename, multifile, flag, line, match);
+      }
     } else {
       printf("%s", line_buf);
     }
