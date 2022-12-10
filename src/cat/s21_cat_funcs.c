@@ -46,6 +46,7 @@ int get_flags(const char *short_options, const struct option long_options[],
   return optind;
 }
 
+/*set info about previous string is empty of not*/
 static void restart_prev_empty(int const curr_empty, int *prev_empty) {
   if (curr_empty) {
     *prev_empty = 1;
@@ -54,6 +55,7 @@ static void restart_prev_empty(int const curr_empty, int *prev_empty) {
   }
 }
 
+/*print result*/
 static void output(dbuf buffer, int const squeeze, int const prev_empty,
                    int *new_line) {
   if (!(squeeze && buffer.empty && prev_empty)) {
@@ -72,21 +74,24 @@ static void output(dbuf buffer, int const squeeze, int const prev_empty,
   }
 }
 
+/*numerate lines if they are not to be missed*/
 static void flag_n(dbuf *buffer, int *all_count, const int squeeze,
                    const int prev_empty, const int new_line) {
   if (!(squeeze && buffer->empty && prev_empty) && new_line) {
-    buffer->number = (*all_count)++;
+    buffer->number = (*all_count)++; /*global counter also changed*/
   }
 }
 
+/*numerate all non-empty lines*/
 static void flag_b(dbuf *buffer, int *non_empty_count, const int new_line) {
   if ((buffer->size != 1) && new_line) {
-    buffer->number = (*non_empty_count)++;
+    buffer->number = (*non_empty_count)++; /*global counter of empty lines also changed*/
   } else {
     buffer->number = 0;
   }
 }
 
+/*marks the string as empty*/
 static void flag_s(dbuf *buffer) {
   if (buffer->size == 1) {
     buffer->empty = 1;
@@ -118,13 +123,14 @@ static void flag_v(dbuf *buffer) {
   }
 }
 
+/*changes line feeds to $*/
 static void flag_e(dbuf *buffer) {
   char *new_data = malloc(sizeof(char) * (buffer->size + 2));
   ssize_t i = 0;
   int j = 0, code = 0;
   while (i < buffer->size) {
     code = buffer->data[i++];
-    if (code == 10) {
+    if (code == LINE_FEED) {
       new_data[j++] = '$';
       new_data[j++] = '\n';
     } else {
@@ -132,10 +138,10 @@ static void flag_e(dbuf *buffer) {
     }
   }
   buffer->size = j;
-  new_data = realloc(new_data, sizeof(char) * buffer->size);
   buffer->data = new_data;
 }
 
+/*changes /t to ^I*/
 static void flag_t(dbuf *buffer) {
   char *new_data = malloc(sizeof(char) * (buffer->size + 2));
   if (new_data) {
@@ -160,6 +166,7 @@ static void flag_t(dbuf *buffer) {
   }
 }
 
+/*processing each file line by line*/
 static void flags_controller(FILE *src, dflag flag, int *prev_empty,
                              int *all_count, int *non_empty_count,
                              int *new_line) {
@@ -192,7 +199,7 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
       flag_e(&buffer);
     }
     output(buffer, flag.s, *prev_empty, new_line);
-    if (flag.t) {
+    if (flag.t || flag.T || flag.e || flag.E) { /*all flags that allocate memorry, except -v*/
       free(buffer.data);
     }
     restart_prev_empty(buffer.empty, prev_empty);
@@ -205,6 +212,7 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
   line_buf = NULL;
 }
 
+/*processing arguments of command line as files*/
 void files_controller(int optind, const int argc, char **argv, dflag flag) {
   FILE *src;
   int prev_empty = 0, all_count = 1, non_empty_count = 1, new_line = 1;
