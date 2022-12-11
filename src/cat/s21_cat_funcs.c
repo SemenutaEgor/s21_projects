@@ -87,7 +87,8 @@ static void flag_n(dbuf *buffer, int *all_count, const int squeeze,
 /*numerate all non-empty lines*/
 static void flag_b(dbuf *buffer, int *non_empty_count, const int new_line) {
   if ((buffer->size != 1) && new_line) {
-    buffer->number = (*non_empty_count)++; /*global counter of empty lines also changed*/
+    buffer->number =
+        (*non_empty_count)++; /*global counter of empty lines also changed*/
   } else {
     buffer->number = 0;
   }
@@ -102,13 +103,16 @@ static void flag_s(dbuf *buffer) {
 
 /*make nonprinting symbols visible*/
 static void flag_v(dbuf *buffer, int *alloc) {
-  char *new_data =  (char *)malloc(sizeof(char) * buffer->size * 2); /*allocate x2 memory for each symbol*/
+  char *new_data = (char *)malloc(sizeof(char) * buffer->size *
+                                  2); /*allocate x2 memory for each symbol*/
   if (new_data) {
     ssize_t i = 0;
-    int j = 0, code = 0;
+    int j = 0;
     while (i < buffer->size) {
+      int code = 0;
       code = buffer->data[i++];
-      if (code <= UNIT_SEP && code != HOR_TAB && code != LINE_FEED && code != CAR_RET) {
+      if (code <= UNIT_SEP && code != HOR_TAB && code != LINE_FEED &&
+          code != CAR_RET) {
         new_data[j++] = '^';
         new_data[j++] = code + ALP_START;
       } else if (code == DEL) {
@@ -118,38 +122,39 @@ static void flag_v(dbuf *buffer, int *alloc) {
         new_data[j++] = code;
       }
     }
-    buffer->size = j; 
+    buffer->size = j;
     if (*alloc) {
       free(buffer->data); /*because new_data has new address*/
     }
     buffer->data = new_data;
     *alloc = 1;
-    } else {
+  } else {
     fprintf(stderr, "s21_cat: error with memory allocating\n");
   }
 }
 
 /*changes line feeds to $*/
 static void flag_e(dbuf *buffer, int *alloc) {
-  char *new_data = (char*)malloc(sizeof(char) * (buffer->size + 2));
+  char *new_data = (char *)malloc(sizeof(char) * (buffer->size + 2));
   if (new_data) {
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code == LINE_FEED) {
-      new_data[j++] = '$';
-      new_data[j++] = '\n';
-    } else {
-      new_data[j++] = code;
+    ssize_t i = 0;
+    int j = 0;
+    while (i < buffer->size) {
+      int code = 0;
+      code = buffer->data[i++];
+      if (code == LINE_FEED) {
+        new_data[j++] = '$';
+        new_data[j++] = '\n';
+      } else {
+        new_data[j++] = code;
+      }
     }
-  }
-  buffer->size = j;
-  if (*alloc) {
-    free(buffer->data); /*because new_data has new address*/
-  }
-  buffer->data = new_data;
-  *alloc = 1;
+    buffer->size = j;
+    if (*alloc) {
+      free(buffer->data); /*because new_data has new address*/
+    }
+    buffer->data = new_data;
+    *alloc = 1;
   } else {
     fprintf(stderr, "s21_cat: error with memory allocating\n");
   }
@@ -157,25 +162,26 @@ static void flag_e(dbuf *buffer, int *alloc) {
 
 /*changes /t to ^I*/
 static void flag_t(dbuf *buffer, int *alloc) {
-  char *new_data = (char*)malloc(sizeof(char) * buffer->size * 2);
+  char *new_data = (char *)malloc(sizeof(char) * buffer->size * 2);
   if (new_data) {
-  ssize_t i = 0;
-  int j = 0, code = 0;
-  while (i < buffer->size) {
-    code = buffer->data[i++];
-    if (code == 9) {
-      new_data[j++] = '^';
-      new_data[j++] = 'I';
-    } else {
-      new_data[j++] = code;
+    ssize_t i = 0;
+    int j = 0;
+    while (i < buffer->size) {
+      int code = 0;
+      code = buffer->data[i++];
+      if (code == 9) {
+        new_data[j++] = '^';
+        new_data[j++] = 'I';
+      } else {
+        new_data[j++] = code;
+      }
     }
-  }
-  buffer->size = j;
-  if (*alloc) {
-    free(buffer->data); /*because new_data has new address*/
-  }
-  buffer->data = new_data;
-  *alloc = 1;
+    buffer->size = j;
+    if (*alloc) {
+      free(buffer->data); /*because new_data has new address*/
+    }
+    buffer->data = new_data;
+    *alloc = 1;
   } else {
     fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
   }
@@ -231,10 +237,10 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
 
 /*processing arguments of command line as files*/
 void files_controller(int optind, const int argc, char **argv, dflag flag) {
-  FILE *src;
   int prev_empty = 0, all_count = 1, non_empty_count = 1, new_line = 1;
 
   while (optind < argc) {
+    FILE *src;
     src = fopen(argv[optind], "r");
     if (src) {
       flags_controller(src, flag, &prev_empty, &all_count, &non_empty_count,
