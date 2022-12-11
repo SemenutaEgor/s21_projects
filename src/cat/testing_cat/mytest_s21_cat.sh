@@ -3,7 +3,9 @@
 SUCCESS=0
 FAIL=0
 COUNTER=0
+LEAK_COUNTER=0
 DIFF_RES=""
+VG_RES=""
 
 declare -a multy_testing=(
 "VAR 1_multy_test.txt"
@@ -47,12 +49,28 @@ testing()
     rm test_s21_cat.log test_sys_cat.log
 }
 
+vg_checking () {
+  t=$(echo $@ | sed "s/VAR/$var/")
+  valgrind --tool=memcheck --leak-check=full --track-origins=yes --show-reachable=yes --num-callers=20 --track-fds=yes --log-file="vg_info.log" ../s21_cat $t > vg_out.log
+  VG_RES="$(grep LEAK -c vg_info.log)"
+  if [ "$VG_RES" == "0" ]
+    then
+        echo "NO LEAKS"
+    else
+      (( LEAK_COUNTER++ ))
+        echo "THERE ARE LEAKS"
+  fi
+  rm vg_info.log vg_out.log
+}
+
+
 for var1 in b e n s t
 do
   for i in "${multy_testing[@]}"
   do
     var="-$var1"
     testing $i
+    vg_checking $i
   done
 done
 
@@ -64,6 +82,7 @@ do
       do
         var="-$var1$var2"
         testing $i
+        vg_checking $i
       done
   done
 done
@@ -78,6 +97,7 @@ do
       do
         var="-$var1 -$var2 -$var3"
         testing $i
+        vg_checking $i
       done   
     done
   done
@@ -95,6 +115,7 @@ do
         do
           var="-$var1$var2$var3$var4"
           testing $i
+          vg_checking $i
         done
       done
     done
@@ -105,8 +126,10 @@ for i in "${unique_testing[@]}"
 do
     var="-"
     testing $i
+    vg_checking $i
 done
 
 echo "FAIL: $FAIL"
 echo "SUCCESS: $SUCCESS"
 echo "ALL: $COUNTER"
+echo "LEAKS: $LEAK_COUNTER"

@@ -21,6 +21,7 @@ int get_flags(const char *short_options, const struct option long_options[],
       }
       case 'e': {
         flag->e = 1;
+        flag->v = 1;
         break;
       }
       case 'E': {
@@ -29,6 +30,7 @@ int get_flags(const char *short_options, const struct option long_options[],
       }
       case 't': {
         flag->t = 1;
+        flag->v = 1;
         break;
       }
       case 'T': {
@@ -99,7 +101,7 @@ static void flag_s(dbuf *buffer) {
 }
 
 /*make nonprinting symbols visible*/
-static void flag_v(dbuf *buffer) {
+static void flag_v(dbuf *buffer, int *alloc) {
   char *new_data =  (char *)malloc(sizeof(char) * buffer->size * 2); /*allocate x2 memory for each symbol*/
   if (new_data) {
     ssize_t i = 0;
@@ -117,15 +119,20 @@ static void flag_v(dbuf *buffer) {
       }
     }
     buffer->size = j; 
+    if (*alloc) {
+      free(buffer->data); /*because new_data has new address*/
+    }
     buffer->data = new_data;
+    *alloc = 1;
     } else {
     fprintf(stderr, "s21_cat: error with memory allocating\n");
   }
 }
 
 /*changes line feeds to $*/
-static void flag_e(dbuf *buffer) {
-  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+static void flag_e(dbuf *buffer, int *alloc) {
+  char *new_data = (char*)malloc(sizeof(char) * (buffer->size + 2));
+  if (new_data) {
   ssize_t i = 0;
   int j = 0, code = 0;
   while (i < buffer->size) {
@@ -138,12 +145,19 @@ static void flag_e(dbuf *buffer) {
     }
   }
   buffer->size = j;
+  if (*alloc) {
+    free(buffer->data); /*because new_data has new address*/
+  }
   buffer->data = new_data;
+  *alloc = 1;
+  } else {
+    fprintf(stderr, "s21_cat: error with memory allocating\n");
+  }
 }
 
 /*changes /t to ^I*/
-static void flag_t(dbuf *buffer) {
-  char *new_data = malloc(sizeof(char) * (buffer->size + 2));
+static void flag_t(dbuf *buffer, int *alloc) {
+  char *new_data = (char*)malloc(sizeof(char) * buffer->size * 2);
   if (new_data) {
   ssize_t i = 0;
   int j = 0, code = 0;
@@ -157,10 +171,11 @@ static void flag_t(dbuf *buffer) {
     }
   }
   buffer->size = j;
-  if (buffer->data) {
+  if (*alloc) {
     free(buffer->data); /*because new_data has new address*/
   }
   buffer->data = new_data;
+  *alloc = 1;
   } else {
     fprintf(stderr, "s21_cat: error with allocating memory for patterns\n");
   }
@@ -171,16 +186,17 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
                              int *all_count, int *non_empty_count,
                              int *new_line) {
   char *line_buf = NULL; /*for store string*/
+  int alloc = 0;
   size_t line_buf_size = 0;
   ssize_t line_size = getline(&line_buf, &line_buf_size, src);
   dbuf buffer = {line_buf, 0, 0, line_size};
   while (buffer.size >= 0) {
     if (flag.t) {
-      flag_v(&buffer);
-      flag_t(&buffer);
+      flag_v(&buffer, &alloc);
+      flag_t(&buffer, &alloc);
     }
     if (flag.T) {
-      flag_t(&buffer);
+      flag_t(&buffer, &alloc);
     }
     if (flag.s) {
       flag_s(&buffer);
@@ -192,15 +208,16 @@ static void flags_controller(FILE *src, dflag flag, int *prev_empty,
       flag_b(&buffer, non_empty_count, *new_line);
     }
     if (flag.e) {
-      flag_v(&buffer);
-      flag_e(&buffer);
+      flag_v(&buffer, &alloc);
+      flag_e(&buffer, &alloc);
     }
     if (flag.E) {
-      flag_e(&buffer);
+      flag_e(&buffer, &alloc);
     }
     output(buffer, flag.s, *prev_empty, new_line);
-    if (flag.t || flag.T || flag.e || flag.E) { /*all flags that allocate memorry, except -v*/
+    if (alloc) { /*all flags that allocate memorry, except -v*/
       free(buffer.data);
+      alloc = 0;
     }
     restart_prev_empty(buffer.empty, prev_empty);
     buffer.size = getline(&line_buf, &line_buf_size, src);

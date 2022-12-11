@@ -7,6 +7,7 @@
 
 typedef struct flags {
         int b;
+        int v;
         int e;
         int E;
         int n;

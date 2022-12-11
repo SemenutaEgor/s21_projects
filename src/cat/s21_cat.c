@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
       {"squeeze-blank", no_argument, NULL, 's'},
       {NULL, 0, NULL, 0}};
 
-  dflag flag = {0, 0, 0, 0, 0, 0, 0};
+  dflag flag = {0, 0, 0, 0, 0, 0, 0, 0};
 
   int optind = get_flags(short_options, long_options, argc, argv, &flag);
   files_controller(optind, argc, argv, flag);
