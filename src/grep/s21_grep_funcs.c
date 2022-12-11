@@ -12,7 +12,6 @@ static char *add_to_string(char *string, const char *word) {
         strcat(new_string, word);
       }
     } else {
-      free(string);
       fprintf(stderr, "s21_grep: error with allocating memory for patterns\n");
     }
   } else { /*if string of patterns was empty*/
@@ -37,8 +36,10 @@ static char *load_patterns(char *patterns, const char *filename,
     size_t line_buf_size = 0;
     ssize_t line_size = getline(&line_buf, &line_buf_size, patfile);
     while (line_size >= 0) {
-      line_buf[strcspn(line_buf, "\n")] =
-          0; /*remove \n from line with pattern*/
+      if (strcspn(line_buf, "\n")) {
+        line_buf[strcspn(line_buf, "\n")] =
+            0; /*remove \n from line with pattern*/
+      }
       if (!line_buf) {
         return NULL;
       }
@@ -212,7 +213,6 @@ static void flags_controller(FILE *src, dflag flag, regex_t *regex, int *result,
   }
   if (flag.l && file_match) {
     printf("%s\n", filename);
-    file_match = 0;
   }
   free(line_buf);
   line_buf = NULL;

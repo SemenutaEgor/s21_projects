@@ -4,8 +4,8 @@ SUCCESS=0
 FAIL=0
 COUNTER=0
 DIFF_RES=""
-LEAK_COUNTER=0
-VG_RES=""
+#LEAK_COUNTER=0
+#VG_RES=""
 
 declare -a multy_testing=(
 "for VAR 1_multy_pattern_test.txt"
@@ -72,7 +72,7 @@ do
   do
     var="-$var1"
     testing $i
-    vg_checking $i
+#    vg_checking $i
   done
 done
 
@@ -84,7 +84,7 @@ do
       do
         var="-$var1$var2"
         testing $i
-        vg_checking $i
+#        vg_checking $i
      done
   done
 done
@@ -99,7 +99,7 @@ do
       do
         var="-$var1$var2$var3"
         testing $i
-        vg_checking $i
+#        vg_checking $i
       done   
     done
   done
@@ -124,7 +124,7 @@ for i in "${unique_testing[@]}"
 do
     var="-"
     testing $i
-    vg_checking $i
+#    vg_checking $i
 done
 
 # tests for -o flag, relised in linux style"
@@ -136,7 +136,7 @@ do
       do
         var="-$var1$var2"
         testing $i
-        vg_checking $i
+#        vg_checking $i
       done
   done
 done
@@ -144,4 +144,4 @@ done
 echo "FAIL: $FAIL"
 echo "SUCCESS: $SUCCESS"
 echo "ALL: $COUNTER"
-echo "LEAKS: $LEAK_COUNTER"
+#echo "LEAKS: $LEAK_COUNTER"
