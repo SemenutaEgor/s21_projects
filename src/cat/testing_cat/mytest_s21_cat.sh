@@ -59,6 +59,7 @@ vg_checking () {
     else
       (( LEAK_COUNTER++ ))
         echo "THERE ARE LEAKS"
+        exit 1
   fi
   rm vg_info.log vg_out.log
 }

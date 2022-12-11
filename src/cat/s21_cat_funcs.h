@@ -32,8 +32,8 @@ enum sym_codes {
   DEL = 127
 };
 
-int get_flags(const char* short_options, const struct option long_options[],
-              int argc, char** argv, dflag* flag);
-void files_controller(int optind, const int argc, char** argv, dflag flag);
+int get_flags(const char *short_options, const struct option long_options[],
+              int argc, char **argv, dflag *flag);
+void files_controller(int optind, const int argc, char **argv, dflag flag);
 
 #endif /* SRC_CAT_S21_CAT_FUNCS_H_ */

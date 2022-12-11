@@ -20,6 +20,7 @@ rebuild: clean all
 
 clang:
 	clang-format -style=google -i $(SRC_GREP)
+	clang-format -style=google -i $(HDR)
 
 cpp:
 	cppcheck --enable=all --suppress=missingIncludeSystem $(SRC_GREP)
